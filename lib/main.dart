@@ -43,15 +43,17 @@ class _CameraScreenState extends State<CameraScreen> {
   late Timer _imageSendTimer;
   bool _isCapturing =
       false; // Flag to track whether a picture is being captured
-
+  // late Stopwatch _frameStopwatch;
   @override
   void initState() {
     super.initState();
 
-    // _imageSendTimer = Timer.periodic(Duration(milliseconds: 200), (timer) {
-    //   _takeAndSendPicture();
-    // });
-    _controller = CameraController(widget.cameras[0], ResolutionPreset.medium);
+    // _frameStopwatch = Stopwatch()..start();
+
+    _imageSendTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+      _takeAndSendPicture();
+    });
+    _controller = CameraController(widget.cameras[0], ResolutionPreset.low);
     _controller.initialize().then((_) {
       if (!mounted) {
         return;
@@ -106,6 +108,9 @@ class _CameraScreenState extends State<CameraScreen> {
       _isCapturing =
           true; // Set the flag to indicate that capture is in progress
       try {
+        // await _controller.setFocusMode(FocusMode.locked);
+        // await _controller.setExposureMode(ExposureMode.locked);
+        await _controller.setFlashMode(FlashMode.off);
         final XFile imageFile = await _controller.takePicture();
         final List<int> imageBytes = await imageFile.readAsBytes();
         _sendImage(Uint8List.fromList(imageBytes));
@@ -129,14 +134,19 @@ class _CameraScreenState extends State<CameraScreen> {
       ),
       body: Column(
         children: <Widget>[
-          Text('Server Connection Status: $connectionStatus'),
+          Text('Status: $connectionStatus'),
           Text('ML Server IP: $ipML:80'),
-          Text('Prediction: $predictionText'),
+          // Text('Prediction: $predictionText'),
+          Text(
+            predictionText.replaceAll("#", "\n"),
+            // Other styling properties if needed
+          ),
           Expanded(
             child: CameraPreview(_controller),
           ),
           TextButton(
             onPressed: () async {
+              _isCapturing = false;
               final XFile imageFile = await _controller.takePicture();
               final List<int> imageBytes = await imageFile.readAsBytes();
               _sendImage(Uint8List.fromList(imageBytes));
