@@ -5,10 +5,16 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final List<CameraDescription> cameras = await availableCameras();
+  await Supabase.initialize(
+    url: 'https://wwqspguoizevnbocschg.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3cXNwZ3VvaXpldm5ib2NzY2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDE2NzI4MDEsImV4cCI6MjAxNzI0ODgwMX0.rwr6AyxkfyaE_7dgUbdYWrTiTob1K0aQvMubNX7-k08',
+  );
   runApp(MyApp(cameras: cameras));
 }
 
@@ -33,6 +39,9 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
+  final supabase = Supabase.instance.client;
+  String shopName = ''; // Variable to store the shop name
+
   late CameraController _controller;
   late IO.Socket socket;
   String ipML = "192.168.1.160"; // Use the server IP here
@@ -47,7 +56,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   void initState() {
     super.initState();
-
+    fetchShopName();
     // _frameStopwatch = Stopwatch()..start();
 
     _imageSendTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
@@ -122,6 +131,17 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+  Future<void> fetchShopName() async {
+    // Replace 'shop_data_table' with your actual table name
+    final data = await supabase
+        .from('store_data')
+        .select(); // Use execute directly on the PostgrestClient instance
+
+    setState(() {
+      shopName = data[0]['store_name'].toString();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_controller.value.isInitialized) {
@@ -134,6 +154,7 @@ class _CameraScreenState extends State<CameraScreen> {
       ),
       body: Column(
         children: <Widget>[
+          Text('Shop Name: $shopName'),
           Text('Status: $connectionStatus'),
           Text('ML Server IP: $ipML:80'),
           // Text('Prediction: $predictionText'),
