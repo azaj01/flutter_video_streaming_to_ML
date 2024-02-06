@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:app/camera/camera.dart';
 import 'package:app/store/stock.dart';
 import 'package:app/style.dart' as style;
+import 'package:app/user/login.dart';
 import 'package:app/user/profile.dart';
+import 'package:app/user/sign_up.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -30,7 +32,7 @@ Future<void> main() async {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]).then((_) => runApp(MaterialApp(
-        theme: ThemeData.dark(),
+        theme: ThemeData.light(),
         home: const MainScreen(),
         debugShowCheckedModeBanner: false,
       )));
@@ -170,7 +172,8 @@ class _MainScreen extends State<MainScreen> {
           //   cameras: cameras,
           // ),
           const Stock(),
-          const Stock()
+          const Stock(),
+          const LoginPage()
           // Forecast(onRefresh: _forecastUpdate, data: _forecastData)
         ],
       ),
@@ -185,9 +188,13 @@ class _MainScreen extends State<MainScreen> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.filter_drama),
                 label: 'Stock',
+                backgroundColor: style.greyUI),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.person_add_alt),
+                label: 'Login',
                 backgroundColor: style.greyUI)
           ],
-          selectedItemColor: Colors.white,
+          selectedItemColor: Colors.black,
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
         ),
