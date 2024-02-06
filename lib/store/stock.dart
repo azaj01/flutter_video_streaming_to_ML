@@ -70,79 +70,104 @@ class Stock extends StatefulWidget {
 class _StockState extends State<Stock> {
   final _future = Supabase.instance.client.from('category').select();
 
+  Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(product['category_name']),
+          content: Text(product['description']),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Container productTitle(Map<String, dynamic> product) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      color:
+          Colors.black.withOpacity(0.6), // Adjust the opacity/color as needed
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            product['category_name'],
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16.0,
+            ),
+          ),
+          const SizedBox(height: 5.0),
+          Text(
+            'Remaining: ${product['stock']}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          List<Map<String, dynamic>> products = snapshot.data!;
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        List<Map<String, dynamic>> products = snapshot.data!;
 
-          // Sort the products by the 'index' field
-          products.sort((a, b) => a['category_id'].compareTo(b['category_id']));
-          return GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // You can adjust the number of columns here
-              crossAxisSpacing: 10.0,
-              mainAxisSpacing: 10.0,
-              childAspectRatio:
-                  0.75, // You can adjust the aspect ratio as needed
-            ),
-            itemCount: products.length,
-            itemBuilder: ((context, index) {
-              final product = products[index];
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                child: Stack(
-                  children: [
-                    Image.network(
-                      product[
-                          'image_path'], // Assuming 'image_path' contains the URL of the image
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      width: double.infinity,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: EdgeInsets.all(8.0),
-                        color: Colors.black.withOpacity(
-                            0.6), // Adjust the opacity/color as needed
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product['category_name'],
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
-                              ),
-                            ),
-                            SizedBox(height: 5.0),
-                            Text(
-                              'Remaining: ${product['stock']}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14.0,
-                              ),
-                            ),
-                          ],
-                        ),
+        // Sort the products by the 'index' field
+        products.sort((a, b) => a['category_id'].compareTo(b['category_id']));
+        return GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // You can adjust the number of columns here
+            crossAxisSpacing: 10.0,
+            mainAxisSpacing: 10.0,
+            childAspectRatio: 0.75, // You can adjust the aspect ratio as needed
+          ),
+          itemCount: products.length,
+          itemBuilder: ((context, index) {
+            final product = products[index];
+            return GestureDetector(
+                onTap: () {
+                  diaLog(context, product);
+                },
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    children: [
+                      Image.network(
+                        product[
+                            'image_path'], // Assuming 'image_path' contains the URL of the image
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        width: double.infinity,
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          );
-        },
-      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: productTitle(product),
+                      ),
+                    ],
+                  ),
+                ));
+          }),
+        );
+      },
     );
   }
 }
