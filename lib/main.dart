@@ -5,6 +5,7 @@ import 'package:app/camera/camera.dart';
 import 'package:app/store/stock.dart';
 import 'package:app/style.dart' as style;
 import 'package:app/user/auth.dart';
+import 'package:app/user/cart.dart';
 import 'package:app/user/login.dart';
 import 'package:app/user/profile.dart';
 import 'package:app/user/sign_up.dart';
@@ -150,6 +151,7 @@ class _MainScreen extends State<MainScreen> {
             );
           }
         },
+        showIcon: Icon(Icons.person),
       ),
 
       body: IndexedStack(
@@ -160,7 +162,7 @@ class _MainScreen extends State<MainScreen> {
           // ),
           const Stock(),
           const Stock(),
-          const Stock(),
+          const CartPage(),
           // ProfilePage()
           // Forecast(onRefresh: _forecastUpdate, data: _forecastData)
         ],
@@ -178,8 +180,8 @@ class _MainScreen extends State<MainScreen> {
                 label: 'Stock',
                 backgroundColor: style.greyUI),
             BottomNavigationBarItem(
-                icon: Icon(Icons.person_add_alt),
-                label: 'Login',
+                icon: Icon(Icons.shopping_bag_rounded),
+                label: 'Cart',
                 backgroundColor: style.greyUI)
           ],
           selectedItemColor: Colors.black,

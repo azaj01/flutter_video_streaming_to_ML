@@ -1,10 +1,12 @@
 import 'dart:io';
 
 // import 'package:app/Camera.dart';
+import 'package:app/model/cart.dart';
 import 'package:flutter/material.dart';
 // import 'package:photo_gallery/photo_gallery.dart';
 // import 'package:permission_handler/permission_handler.dart';
 import 'package:app/style.dart' as style;
+import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:app/memory/displayphoto.dart';
 
@@ -68,14 +70,15 @@ class Stock extends StatefulWidget {
 }
 
 class _StockState extends State<Stock> {
-  final _future = Supabase.instance.client.from('category').select();
+  final _future = Supabase.instance.client.from('product').select();
 
+  final cartController = Get.put(CartController());
   Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(product['category_name']),
+          title: Text(product['product_name']),
           content: Text(product['description']),
           actions: <Widget>[
             TextButton(
@@ -91,6 +94,7 @@ class _StockState extends State<Stock> {
   }
 
   Container productTitle(Map<String, dynamic> product) {
+    final product_id = product['product_id'].toString();
     return Container(
       padding: const EdgeInsets.all(8.0),
       color:
@@ -99,7 +103,7 @@ class _StockState extends State<Stock> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            product['category_name'],
+            product['product_name'],
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -114,6 +118,11 @@ class _StockState extends State<Stock> {
               fontSize: 14.0,
             ),
           ),
+          TextButton(
+              onPressed: () {
+                cartController.addToCart(product, 1);
+              },
+              child: Text('add to cart:${product['product_id']}')),
         ],
       ),
     );
@@ -130,7 +139,7 @@ class _StockState extends State<Stock> {
         List<Map<String, dynamic>> products = snapshot.data!;
 
         // Sort the products by the 'index' field
-        products.sort((a, b) => a['category_id'].compareTo(b['category_id']));
+        products.sort((a, b) => a['product_id'].compareTo(b['product_id']));
         return GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // You can adjust the number of columns here
