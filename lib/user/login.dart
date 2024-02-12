@@ -1,3 +1,4 @@
+import 'package:app/main.dart';
 import 'package:app/user/sign_up.dart';
 import 'package:flutter/material.dart';
 // import 'package:supabase_authentication/signup.dart';
@@ -28,8 +29,14 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        centerTitle: true,
-        title: const Text("Login Page"),
+        title: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => MainScreen()),
+            );
+          },
+          child: Text('Login'),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(

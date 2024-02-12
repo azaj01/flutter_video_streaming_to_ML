@@ -1,13 +1,18 @@
 // import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:app/main.dart';
+import 'package:app/user/auth.dart';
+import 'package:app/user/cart.dart';
+import 'package:app/utils/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:app/model/user.dart';
+import 'package:app/model/appUser.dart';
 import 'package:app/user/edit_profile.dart';
 import 'package:app/utils/user_preferences.dart';
 // import 'package:user_profile_ii_example/widget/appbar_widget.dart';
 // import 'package:user_profile_ii_example/widget/button_widget.dart';
 // import 'package:user_profile_ii_example/widget/numbers_widget.dart';
 import 'package:app/widget/profile_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -16,12 +21,46 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   @override
+  void initState() {
+    super.initState();
+    // checkLoginStatus();
+  }
+
+  // Future<void> checkLoginStatus() async {
+  //   await LoginUtils.checkLoginStatus(context);
+  // }
+
+  Future<void> signOut() async {
+    final response = await Supabase.instance.client.auth.signOut();
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => const MainScreen()),
+    // );
+    Navigator.pushNamedAndRemoveUntil(
+        context, '/home', (Route<dynamic> route) => false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = UserPreferences.myUser;
+    const user = UserPreferences.myUser;
 
     return Container(
       child: Builder(
         builder: (context) => Scaffold(
+          appBar: CustomAppBar(
+            onTap: () async {
+              final currentContext = context;
+              final isLoggedIn =
+                  await LoginUtils.checkLoginStatus(currentContext);
+              if (isLoggedIn) {
+                Navigator.push(
+                  currentContext,
+                  MaterialPageRoute(builder: (currentContext) => CartPage()),
+                );
+              }
+            },
+            showIcon: Icon(Icons.shopping_bag_rounded),
+          ),
           body: ListView(
             physics: BouncingScrollPhysics(),
             children: [
@@ -36,6 +75,10 @@ class _ProfilePageState extends State<ProfilePage> {
               buildName(user),
               const SizedBox(height: 24),
               buildCredit(user),
+              IconButton(
+                onPressed: signOut,
+                icon: Icon(Icons.logout),
+              ),
             ],
           ),
         ),
@@ -43,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buildName(User user) => Column(
+  Widget buildName(AppUser user) => Column(
         children: [
           Text(
             user.userId,
@@ -65,7 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       );
 
-  Widget buildCredit(User user) => Container(
+  Widget buildCredit(AppUser user) => Container(
         padding: EdgeInsets.symmetric(horizontal: 48),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

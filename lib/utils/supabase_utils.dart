@@ -1,3 +1,4 @@
+import 'package:app/user/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:app/supabase.dart';
@@ -13,19 +14,12 @@ class SupabaseManager {
     debugPrint("email:$email password:$password");
     final response =
         await client.auth.signUp(email: email ?? '', password: password ?? '');
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
+    );
     // debugPrint(result.toJson().toString());
-    if (response.user != null) {
-      await client.from('customer').insert({
-        'customer_id': response.user!.id,
-        'first_name': 'user',
-        'email': response.user!.email,
-        'birth_date': null,
-        'last_name': 'test',
-        'join_at': response.user!.createdAt,
-        'credit_user': 0
-      });
-    }
+
     // if (result != null) {
     // showToastMessage('Registration Success', isError: false);
     // Navigator.pushReplacementNamed(context, 'login');
@@ -40,6 +34,11 @@ class SupabaseManager {
     debugPrint("email:$email password:$password");
     final response = await client.auth
         .signInWithPassword(email: email, password: password ?? '');
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
+    );
     // debugPrint(result.data!.toJson().toString());
     // print(response);
 

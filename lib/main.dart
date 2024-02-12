@@ -4,9 +4,11 @@ import 'dart:typed_data';
 import 'package:app/camera/camera.dart';
 import 'package:app/store/stock.dart';
 import 'package:app/style.dart' as style;
+import 'package:app/user/auth.dart';
 import 'package:app/user/login.dart';
 import 'package:app/user/profile.dart';
 import 'package:app/user/sign_up.dart';
+import 'package:app/utils/appbar.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -28,27 +30,38 @@ Future<void> main() async {
   } on CameraException catch (e) {
     print('Error in fetching the cameras: $e');
   }
-  // runApp(MyApp(cameras: cameras));
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]).then((_) => runApp(MaterialApp(
         theme: ThemeData.light(),
-        home: const MainScreen(),
+        home: MyApp(),
         debugShowCheckedModeBanner: false,
       )));
 }
 
-// class MyApp extends StatelessWidget {
-//   const MyApp({required this.cameras, Key? key}) : super(key: key);
-//   final List<CameraDescription> cameras;
+class MyApp extends StatelessWidget {
+  // Initialize Supabase client
+  final supabaseClient = SupabaseClient(
+    'YOUR_SUPABASE_URL',
+    'YOUR_SUPABASE_KEY',
+  );
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: CameraScreen(cameras: cameras),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Supabase Login Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      initialRoute: '/home',
+      routes: {
+        '/login': (context) => LoginPage(),
+        '/profile': (context) => ProfilePage(),
+        '/home': (context) => MainScreen(),
+      },
+    );
+  }
+}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -97,6 +110,27 @@ class _MainScreen extends State<MainScreen> {
   void initState() {
     super.initState();
     _initData().whenComplete(() => null);
+    Supabase.instance.client.auth.onAuthStateChange.listen((event) {
+      // print(event.event);
+      if (event.event == AuthChangeEvent.signedIn) {
+        print('are login');
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => ProfilePage()),
+        // );
+      } else if (event.event == AuthChangeEvent.signedOut) {
+        print('signedOut redirect');
+
+        // Navigator.pushNamedAndRemoveUntil(
+        //     context, '/home', (Route<dynamic> route) => false);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const LoginPage()),
+        // );
+      } else {
+        print(event.event);
+      }
+    });
   }
 
   @override
@@ -105,66 +139,19 @@ class _MainScreen extends State<MainScreen> {
       resizeToAvoidBottomInset: false,
       // (size themselves to avoid the onscreen keyboard)
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'CapSnap',
-              textScaleFactor: 1.2,
-            ),
-
-            //make it clikable to set location
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ProfilePage()),
-                      );
-
-                      // final chosenLocation = await Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //       builder: (context) =>
-                      //           const Selectlocation(predefinedLocation: []),
-                      //     ));
-                      // print(chosenLocation);
-                      // if (chosenLocation != null) {
-                      //   setState(() {
-                      //     print("data");
-                      //     Userposition.setChosenLocation(
-                      //         chosenLocation.lat.toString(),
-                      //         chosenLocation.lon.toString(),
-                      //         chosenLocation.name);
-                      //     print(Userposition.display_place_Chosen);
-                      //     _forecastUpdate();
-                      //   });
-                      // }
-                    },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.person),
-                        Flexible(
-                            child: Text(
-                          // Userposition.display_place_Chosen,
-                          'User',
-                          textScaleFactor: 0.7,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ))
-                      ],
-                    )),
-              ),
-            ),
-          ],
-        ),
+      appBar: CustomAppBar(
+        onTap:
+            // Handle onTap event here
+            () async {
+          if (await LoginUtils.checkLoginStatus(context)) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfilePage()),
+            );
+          }
+        },
       ),
+
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -173,7 +160,8 @@ class _MainScreen extends State<MainScreen> {
           // ),
           const Stock(),
           const Stock(),
-          const LoginPage()
+          const Stock(),
+          // ProfilePage()
           // Forecast(onRefresh: _forecastUpdate, data: _forecastData)
         ],
       ),
