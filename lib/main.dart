@@ -14,8 +14,12 @@ import 'package:app/utils/appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'model/cart.dart';
+import 'package:badges/badges.dart' as badges;
 
 List<CameraDescription> cameras = [];
 Future<void> main() async {
@@ -134,6 +138,8 @@ class _MainScreen extends State<MainScreen> {
     });
   }
 
+  final cartController = Get.put(CartController());
+  // final cartController = Get.put<CartController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,10 +163,10 @@ class _MainScreen extends State<MainScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          // CameraScreen(
-          //   cameras: cameras,
-          // ),
-          const Stock(),
+          CameraScreen(
+            cameras: cameras,
+          ),
+          // const Stock(),
           const Stock(),
           const CartPage(),
           // ProfilePage()
@@ -170,19 +176,33 @@ class _MainScreen extends State<MainScreen> {
       bottomNavigationBar: Container(
         color: style.greyUI,
         child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
+          items: <BottomNavigationBarItem>[
+            const BottomNavigationBarItem(
                 icon: Icon(Icons.camera_alt_outlined),
                 label: 'Camera',
                 backgroundColor: style.greyUI),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
                 icon: Icon(Icons.filter_drama),
                 label: 'Stock',
                 backgroundColor: style.greyUI),
+            // BottomNavigationBarItem(
+            //     icon: Icon(Icons.shopping_bag_rounded),
+            //     label: 'Cart',
+            //     backgroundColor: style.greyUI)
             BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_bag_rounded),
-                label: 'Cart',
-                backgroundColor: style.greyUI)
+              // Use the Badge widget to display a badge on the shopping bag icon
+              icon: badges.Badge(
+                badgeContent: Obx(
+                  () => // Obx to reactively update the badge
+                      Text(
+                    '${cartController.cartItems.length}', // Display the number of items in the cart
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                child: Icon(Icons.shopping_bag_rounded),
+              ),
+              label: 'Cart',
+            ),
           ],
           selectedItemColor: Colors.black,
           currentIndex: _selectedIndex,

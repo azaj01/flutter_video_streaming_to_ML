@@ -72,7 +72,8 @@ class Stock extends StatefulWidget {
 class _StockState extends State<Stock> {
   final _future = Supabase.instance.client.from('product').select();
 
-  final cartController = Get.put(CartController());
+  // final cartController = Get.put(CartController());
+  final cartController = Get.find<CartController>();
   Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
     return showDialog(
       context: context,
