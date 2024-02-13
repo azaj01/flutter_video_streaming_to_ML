@@ -21,9 +21,13 @@ class _CameraScreenState extends State<CameraScreen> {
   String shopName = ''; // Variable to store the shop name
 
   late CameraController _controller;
-  late IO.Socket socket;
   String ipML = "192.168.1.160"; // Use the server IP here
   int portML = 80; // Use the server port here
+  late IO.Socket socket = IO.io('http://$ipML:$portML', <String, dynamic>{
+    'transports': ['websocket'],
+    'autoConnect': true,
+  });
+
   String connectionStatus = "Connecting...";
   String predictionText = "";
   late Timer _reconnectTimer;
@@ -45,25 +49,36 @@ class _CameraScreenState extends State<CameraScreen> {
       if (!mounted) {
         return;
       }
-      // _controller.startImageStream((CameraImage image) {
-      //   if (_frameStopwatch.elapsedMilliseconds > (1000 ~/ 5)) {
-      //     _frameStopwatch.reset();
-      //     _sendImage(Uint8List.fromList(image.planes[0].bytes));
-      //   }
-      // });
+
       setState(() {});
     });
 
-    socket = IO.io('http://$ipML:$portML', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': true,
-    });
+    // Initialize socket connection with initial IP and port
+    _initializeSocket(ipML, portML);
 
     _reconnectTimer = Timer.periodic(Duration(seconds: 10), (timer) {
       if (!socket.connected) {
         print('Attempting to reconnect...');
-        _attemptReconnect();
+        _initializeSocket(ipML, portML);
       }
+    });
+    // socket.onConnect((_) {
+    //   setState(() {
+    //     connectionStatus = 'Connected to server';
+    //   });
+    // });
+  }
+
+  void _initializeSocket(String ip, int port) {
+    // Close existing socket connection
+    // if (socket != null) {
+    socket.disconnect();
+    socket.destroy();
+    // }
+
+    socket = IO.io('http://$ip:$port', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
     });
 
     socket.onConnect((_) {
@@ -71,7 +86,6 @@ class _CameraScreenState extends State<CameraScreen> {
         connectionStatus = 'Connected to server';
       });
     });
-
     socket.on('prediction', (data) {
       // Handle the predicted text received from Python
       String prediction = data['text'];
@@ -80,6 +94,8 @@ class _CameraScreenState extends State<CameraScreen> {
         predictionText = prediction;
       });
     });
+
+    // Add listeners for other events as needed
   }
 
   void _attemptReconnect() {
@@ -136,21 +152,25 @@ class _CameraScreenState extends State<CameraScreen> {
           Text('Status: $connectionStatus'),
           Text('ML Server IP: $ipML:80'),
           // Text('Prediction: $predictionText'),
+          // Expanded(
+          // child:
           Text(
             predictionText.replaceAll("#", "\n"),
             // Other styling properties if needed
           ),
+          // ),
           Expanded(
             child: CameraPreview(_controller),
           ),
           TextButton(
             onPressed: () async {
               _isCapturing = false;
-              final XFile imageFile = await _controller.takePicture();
-              final List<int> imageBytes = await imageFile.readAsBytes();
-              _sendImage(Uint8List.fromList(imageBytes));
+              // final XFile imageFile = await _controller.takePicture();
+              // final List<int> imageBytes = await imageFile.readAsBytes();
+              // _sendImage(Uint8List.fromList(imageBytes));
+              _initializeSocket(ipML, portML);
             },
-            child: const Text('Take Picture'),
+            child: const Text('Classification!'),
           ),
           TextField(
             onSubmitted: (text) {
