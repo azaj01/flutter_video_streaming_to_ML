@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:app/style.dart' as style;
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -19,7 +21,7 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> {
   final supabase = Supabase.instance.client;
   String shopName = ''; // Variable to store the shop name
-
+  String barcode = '';
   late CameraController _controller;
   String ipML = "192.168.1.160"; // Use the server IP here
   int portML = 80; // Use the server port here
@@ -35,11 +37,21 @@ class _CameraScreenState extends State<CameraScreen> {
   bool _isCapturing =
       false; // Flag to track whether a picture is being captured
   // late Stopwatch _frameStopwatch;
+  late BarcodeScanner barcodeScanner;
   @override
   void initState() {
     super.initState();
     fetchShopName();
-    // _frameStopwatch = Stopwatch()..start();
+
+    // _controller = CameraController(widget.cameras[0], ResolutionPreset.low);
+    // _controller.initialize().then((_) {
+    //   if (!mounted) {
+    //     return;
+    //   }
+    //   setState(() {});
+    // });
+    // // Initialize socket connection with initial IP and port
+    // _initializeSocket(ipML, portML);
 
     _imageSendTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
       _takeAndSendPicture();
@@ -67,6 +79,7 @@ class _CameraScreenState extends State<CameraScreen> {
     //     connectionStatus = 'Connected to server';
     //   });
     // });
+    barcodeScanner = GoogleMlKit.vision.barcodeScanner();
   }
 
   void _initializeSocket(String ip, int port) {
@@ -116,6 +129,11 @@ class _CameraScreenState extends State<CameraScreen> {
         await _controller.setFlashMode(FlashMode.off);
         final XFile imageFile = await _controller.takePicture();
         final List<int> imageBytes = await imageFile.readAsBytes();
+        final barcode = await _readBarcode(
+            imageFile); // Read barcode from the captured image
+        setState(() {
+          this.barcode = barcode;
+        });
         _sendImage(Uint8List.fromList(imageBytes));
       } catch (e) {
         print('Error capturing and sending picture: $e');
@@ -123,6 +141,15 @@ class _CameraScreenState extends State<CameraScreen> {
         _isCapturing = false; // Reset the flag when capture is complete
       }
     }
+  }
+
+  Future<String> _readBarcode(XFile imageFile) async {
+    final inputImage = InputImage.fromFilePath(imageFile.path);
+    final barcodes = await barcodeScanner.processImage(inputImage);
+    for (final barcode in barcodes) {
+      return barcode.displayValue ?? '';
+    }
+    return ''; // Return empty string if no barcode found
   }
 
   Future<void> fetchShopName() async {
@@ -135,6 +162,42 @@ class _CameraScreenState extends State<CameraScreen> {
       shopName = data[0]['store_name'].toString();
     });
   }
+
+  // Future<void> _scanBarcode() async {
+  //   try {
+  // var result = await BarcodeScanner.scan();
+  //     setState(() {
+  //       barcode = result.rawContent;
+  //     });
+  //   } catch (e) {
+  //     print('Error scanning barcode: $e');
+  //   }
+  // }
+  // Future<String> _doScan() async {
+  //   const MethodChannel _channel = MethodChannel('de.mintware.barcode_scan');
+
+  //   final options = ScanOptions(); // You can pass options here if needed
+  //   final config = proto.Configuration()
+  //     ..useCamera = options.useCamera
+  //     ..restrictFormat.addAll(options.restrictFormat)
+  //     ..autoEnableFlash = options.autoEnableFlash
+  //     ..strings.addAll(options.strings)
+  //     ..android = (proto.AndroidConfiguration()
+  //       ..useAutoFocus = options.android.useAutoFocus
+  //       ..aspectTolerance = options.android.aspectTolerance);
+  //   final buffer = (await _channel.invokeMethod<List<int>>(
+  //     'scan',
+  //     config.writeToBuffer(),
+  //   ))!;
+  //   final tmpResult = proto.ScanResult.fromBuffer(buffer);
+  //   return tmpResult.rawContent;
+  //   // return ScanResult(
+  //   //   format: tmpResult.format,
+  //   //   formatNote: tmpResult.formatNote,
+  //   //   rawContent: tmpResult.rawContent,
+  //   //   type: tmpResult.type,
+  //   // );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -159,9 +222,14 @@ class _CameraScreenState extends State<CameraScreen> {
             // Other styling properties if needed
           ),
           // ),
+          Text('Result: $barcode'),
           Expanded(
             child: CameraPreview(_controller),
           ),
+          // TextButton(
+          //   onPressed: _scanBarcode,
+          //   child: const Text('Scan Barcode'),
+          // ),
           TextButton(
             onPressed: () async {
               _isCapturing = false;
