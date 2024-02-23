@@ -6,7 +6,9 @@ import 'package:app/style.dart' as style;
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:get/get.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+// import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,37 +38,30 @@ class _CameraScreenState extends State<CameraScreen> {
   late Timer _imageSendTimer;
   bool _isCapturing =
       false; // Flag to track whether a picture is being captured
-  // late Stopwatch _frameStopwatch;
+  bool _isUseAI = false; //
+  bool _isUseBarcode = false; //
+
   late BarcodeScanner barcodeScanner;
   @override
   void initState() {
     super.initState();
     fetchShopName();
-
-    // _controller = CameraController(widget.cameras[0], ResolutionPreset.low);
-    // _controller.initialize().then((_) {
-    //   if (!mounted) {
-    //     return;
-    //   }
-    //   setState(() {});
-    // });
-    // // Initialize socket connection with initial IP and port
-    // _initializeSocket(ipML, portML);
-
-    _imageSendTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
-      _takeAndSendPicture();
-    });
-    _controller = CameraController(widget.cameras[0], ResolutionPreset.low);
+    _controller = CameraController(widget.cameras[0], ResolutionPreset.medium);
     _controller.initialize().then((_) {
       if (!mounted) {
         return;
       }
+      barcodeScanner = BarcodeScanner();
+// Initialize socket connection with initial IP and port
+      _initializeSocket(ipML, portML);
+      _imageSendTimer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+        if (_isUseBarcode || _isUseAI) {
+          _takeAndSendPicture();
+        }
+      });
 
       setState(() {});
     });
-
-    // Initialize socket connection with initial IP and port
-    _initializeSocket(ipML, portML);
 
     _reconnectTimer = Timer.periodic(Duration(seconds: 10), (timer) {
       if (!socket.connected) {
@@ -74,20 +69,11 @@ class _CameraScreenState extends State<CameraScreen> {
         _initializeSocket(ipML, portML);
       }
     });
-    // socket.onConnect((_) {
-    //   setState(() {
-    //     connectionStatus = 'Connected to server';
-    //   });
-    // });
-    barcodeScanner = GoogleMlKit.vision.barcodeScanner();
   }
 
   void _initializeSocket(String ip, int port) {
-    // Close existing socket connection
-    // if (socket != null) {
     socket.disconnect();
     socket.destroy();
-    // }
 
     socket = IO.io('http://$ip:$port', <String, dynamic>{
       'transports': ['websocket'],
@@ -121,20 +107,31 @@ class _CameraScreenState extends State<CameraScreen> {
 
   void _takeAndSendPicture() async {
     if (!_isCapturing) {
+      // enter when false
       _isCapturing =
           true; // Set the flag to indicate that capture is in progress
+      XFile? imageFile;
       try {
-        // await _controller.setFocusMode(FocusMode.locked);
-        // await _controller.setExposureMode(ExposureMode.locked);
         await _controller.setFlashMode(FlashMode.off);
-        final XFile imageFile = await _controller.takePicture();
-        final List<int> imageBytes = await imageFile.readAsBytes();
-        final barcode = await _readBarcode(
-            imageFile); // Read barcode from the captured image
-        setState(() {
-          this.barcode = barcode;
-        });
-        _sendImage(Uint8List.fromList(imageBytes));
+        if (_isUseBarcode) {
+          await _controller.setFocusMode(FocusMode.auto);
+          await _controller.setExposureMode(ExposureMode.auto);
+
+          imageFile = await _controller.takePicture();
+          final barcode = await _readBarcode(
+              imageFile); // Read barcode from the captured image
+          setState(() {
+            this.barcode = barcode;
+          });
+        }
+        if (_isUseAI) {
+          await _controller.setFocusMode(FocusMode.locked);
+          await _controller.setExposureMode(ExposureMode.locked);
+          imageFile ??= await _controller.takePicture();
+
+          final List<int> imageBytes = await imageFile!.readAsBytes();
+          _sendImage(Uint8List.fromList(imageBytes));
+        }
       } catch (e) {
         print('Error capturing and sending picture: $e');
       } finally {
@@ -163,42 +160,6 @@ class _CameraScreenState extends State<CameraScreen> {
     });
   }
 
-  // Future<void> _scanBarcode() async {
-  //   try {
-  // var result = await BarcodeScanner.scan();
-  //     setState(() {
-  //       barcode = result.rawContent;
-  //     });
-  //   } catch (e) {
-  //     print('Error scanning barcode: $e');
-  //   }
-  // }
-  // Future<String> _doScan() async {
-  //   const MethodChannel _channel = MethodChannel('de.mintware.barcode_scan');
-
-  //   final options = ScanOptions(); // You can pass options here if needed
-  //   final config = proto.Configuration()
-  //     ..useCamera = options.useCamera
-  //     ..restrictFormat.addAll(options.restrictFormat)
-  //     ..autoEnableFlash = options.autoEnableFlash
-  //     ..strings.addAll(options.strings)
-  //     ..android = (proto.AndroidConfiguration()
-  //       ..useAutoFocus = options.android.useAutoFocus
-  //       ..aspectTolerance = options.android.aspectTolerance);
-  //   final buffer = (await _channel.invokeMethod<List<int>>(
-  //     'scan',
-  //     config.writeToBuffer(),
-  //   ))!;
-  //   final tmpResult = proto.ScanResult.fromBuffer(buffer);
-  //   return tmpResult.rawContent;
-  //   // return ScanResult(
-  //   //   format: tmpResult.format,
-  //   //   formatNote: tmpResult.formatNote,
-  //   //   rawContent: tmpResult.rawContent,
-  //   //   type: tmpResult.type,
-  //   // );
-  // }
-
   @override
   Widget build(BuildContext context) {
     if (!_controller.value.isInitialized) {
@@ -222,6 +183,37 @@ class _CameraScreenState extends State<CameraScreen> {
             // Other styling properties if needed
           ),
           // ),
+          ElevatedButton(
+            onPressed: () async => {
+              !_isUseAI
+                  ? _initializeSocket(ipML, portML)
+                  : () {
+                      socket.disconnect();
+                      socket.destroy();
+                    }(),
+              setState(() {
+                _isCapturing = false;
+                _isUseAI = !_isUseAI;
+              }),
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  _isUseAI ? Colors.red : Colors.grey, // This is what you need!
+            ),
+            child: const Text('AI'),
+          ),
+          ElevatedButton(
+            onPressed: () async => {
+              _isCapturing = false,
+              setState(() {
+                _isUseBarcode = !_isUseBarcode;
+              }),
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isUseBarcode ? Colors.red : Colors.grey,
+            ),
+            child: const Text('Barcode'),
+          ),
           Text('Result: $barcode'),
           Expanded(
             child: CameraPreview(_controller),
@@ -230,16 +222,17 @@ class _CameraScreenState extends State<CameraScreen> {
           //   onPressed: _scanBarcode,
           //   child: const Text('Scan Barcode'),
           // ),
-          TextButton(
-            onPressed: () async {
-              _isCapturing = false;
-              // final XFile imageFile = await _controller.takePicture();
-              // final List<int> imageBytes = await imageFile.readAsBytes();
-              // _sendImage(Uint8List.fromList(imageBytes));
-              _initializeSocket(ipML, portML);
-            },
-            child: const Text('Classification!'),
-          ),
+          // TextButton(
+          //   onPressed: () async {
+          //     _isCapturing = false;
+          //     _i
+          //     // final XFile imageFile = await _controller.takePicture();
+          //     // final List<int> imageBytes = await imageFile.readAsBytes();
+          //     // _sendImage(Uint8List.fromList(imageBytes));
+          //     _initializeSocket(ipML, portML);
+          //   },
+          //   child: const Text('Classification!'),
+          // ),
           TextField(
             onSubmitted: (text) {
               setState(() {
