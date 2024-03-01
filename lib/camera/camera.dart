@@ -150,6 +150,9 @@ class _CameraScreenState extends State<CameraScreen> {
       setState(() {
         predictionText = prediction.replaceAll("#", "\n");
         fristProductPredict = prediction.split('#').first.split(':').first;
+        if (fristProductPredict == 'null') {
+          fristProductPredict = '';
+        }
       });
     });
 
@@ -309,38 +312,39 @@ class _CameraScreenState extends State<CameraScreen> {
                   child: CameraPreview(controller),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text('add: $fristProductPredict'),
-                              Text('Qty: ${qty.toInt()}'),
-                            ]),
-                        Slider(
-                          value: qty.toDouble(),
-                          min: 1,
-                          max: 10,
-                          divisions:
-                              9, // Number of discrete divisions between min and max
-                          onChanged: (newValue) {
-                            setState(() {
-                              qty = newValue.toInt();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('to cart'),
-                    ),
-                  ],
-                ),
+                if (fristProductPredict != '')
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text('add: $fristProductPredict'),
+                                Text('Qty: ${qty.toInt()}'),
+                              ]),
+                          Slider(
+                            value: qty.toDouble(),
+                            min: 1,
+                            max: 10,
+                            divisions:
+                                9, // Number of discrete divisions between min and max
+                            onChanged: (newValue) {
+                              setState(() {
+                                qty = newValue.toInt();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: const Text('to cart'),
+                      ),
+                    ],
+                  ),
               ],
             ),
             Visibility(

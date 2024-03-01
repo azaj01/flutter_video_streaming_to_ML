@@ -1,12 +1,7 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
-
-class CartItem {
-  final String productName;
-  final String productId;
-  final int quantity;
-
-  CartItem(this.productName, {required this.productId, required this.quantity});
-}
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CartController extends GetxController {
   final _cartItems = <Map<String, dynamic>>[].obs;
@@ -39,6 +34,45 @@ class CartController extends GetxController {
     } else {
       _cartItems
           .removeWhere((item) => item['product']['product_id'] == productId);
+    }
+  }
+
+  // void checkOutFromCart() {
+  //   // Prepare data for Supabase API
+  //   Map<String, dynamic> requestData = {
+  //     "customer_id": 121354365363,
+  //     "products": _cartItems.map((item) => item['product']).toList(),
+  //   };
+
+  //   // Convert data to JSON
+  //   String jsonData = jsonEncode(requestData);
+
+  //   // Send data to Supabase API
+  //   // Replace this with your actual code to send data to the Supabase API
+  //   print(jsonData); // Just printing for demonstration
+  // }
+  void checkOutFromCart() async {
+    // Prepare data
+    List<Map<String, dynamic>> products = _cartItems.map((item) {
+      return {
+        'product_id': item['product']['product_id'],
+        'unit': item['quantity'],
+        'total_amount': item['product']['price'] * item['quantity'],
+      };
+    }).toList();
+    print(products);
+    // Call the RPC function on Supabase backend
+    final response = await Supabase.instance.client.rpc('insert_checkout',
+        params: {
+          'payment_id': '94f9ddc7-5a6c-4b48-adf2-86a33bb138a3',
+          'products': products
+        });
+    // print(response.);
+    if (response != null) {
+      print('Error: $response');
+    } else {
+      print('Checkout successful!');
+      clearCart();
     }
   }
 

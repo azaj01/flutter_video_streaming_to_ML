@@ -103,13 +103,26 @@ class _StockState extends State<Stock> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            product['product_name'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16.0,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                product['product_name'],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0,
+                ),
+              ),
+              Text(
+                '${product['price']} ฿',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14.0,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 5.0),
           Text(
@@ -122,6 +135,7 @@ class _StockState extends State<Stock> {
           TextButton(
               onPressed: () {
                 cartController.addToCart(product, 1);
+                print(product.toString());
               },
               child: Text('add to cart:${product['product_id']}')),
         ],

@@ -40,7 +40,7 @@ Future<void> main() async {
   ]).then((_) => runApp(MaterialApp(
         theme: ThemeData.light(),
         home: MyApp(),
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: true,
       )));
 }
 
@@ -50,6 +50,8 @@ class MyApp extends StatelessWidget {
     'YOUR_SUPABASE_URL',
     'YOUR_SUPABASE_KEY',
   );
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

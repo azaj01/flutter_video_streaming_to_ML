@@ -42,34 +42,51 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Cart'),
-      ),
-      body: Obx(() => ListView.builder(
-            itemCount: cartController.cartItems.length,
-            itemBuilder: (context, index) {
-              final item = cartController.cartItems[index];
-              final product = item['product'];
-              return ListTile(
-                leading: Image.network(product['image_path']),
-                title: Text(
-                    'Product: ${product['product_id']}, Quantity: ${item['quantity']}'),
-                trailing: IconButton(
-                  icon: Icon(Icons.remove),
-                  onPressed: () {
-                    cartController.removeFromCart(product['product_id']);
-                  },
-                ),
-              );
-            },
-          )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          cartController.clearCart();
-        },
-        child: Icon(Icons.clear),
-      ),
-    );
+        appBar: AppBar(
+          title: Text('Cart'),
+        ),
+        body: Obx(() => ListView.builder(
+              itemCount: cartController.cartItems.length,
+              itemBuilder: (context, index) {
+                final item = cartController.cartItems[index];
+                final product = item['product'];
+                return ListTile(
+                  leading: Image.network(product['image_path']),
+                  title: Text(
+                      'Product: ${product['product_name']}, Quantity: ${item['quantity']}'),
+                  subtitle: Text('${product['product_id']}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.remove),
+                    onPressed: () {
+                      cartController.removeFromCart(product['product_id']);
+                    },
+                  ),
+                );
+              },
+            )),
+        floatingActionButton: Stack(
+          children: <Widget>[
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: FloatingActionButton(
+                onPressed: () {
+                  cartController.clearCart();
+                },
+                child: Icon(Icons.clear),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: FloatingActionButton(
+                onPressed: () {
+                  cartController.checkOutFromCart();
+                  // cartController.clearCart();
+                },
+                child: Icon(Icons.shopping_cart_checkout),
+              ),
+            ),
+          ],
+        ));
   }
 
   // @override
