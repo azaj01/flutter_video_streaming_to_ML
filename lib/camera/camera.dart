@@ -58,6 +58,7 @@ class _CameraScreenState extends State<CameraScreen> {
   static String ipML = "192.168.1.160"; // Use the server IP here
   static int portML = 80; // Use the server port here
   static late IO.Socket socket;
+  bool showPanel = false; // Initially show the panel
 
   String connectionStatus = "enter ip...";
   String predictionText = "";
@@ -72,6 +73,10 @@ class _CameraScreenState extends State<CameraScreen> {
 
   late BarcodeScanner barcodeScanner;
   String fristProductPredict = '';
+  int qty = 1;
+  double initialRotation = 0.0;
+  double currentRotation = 0.0;
+  int initialQty = 1;
   @override
   void initState() {
     super.initState();
@@ -144,7 +149,7 @@ class _CameraScreenState extends State<CameraScreen> {
       print('Received prediction: $prediction');
       setState(() {
         predictionText = prediction.replaceAll("#", "\n");
-        fristProductPredict = prediction.split('#').first;
+        fristProductPredict = prediction.split('#').first.split(':').first;
       });
     });
 
@@ -230,134 +235,150 @@ class _CameraScreenState extends State<CameraScreen> {
           appBar: AppBar(
             title: const Text('Live Video Streaming'),
           ),
-          body: Column(
-            children: <Widget>[
-              Text('Shop Name: $shopName'),
-              Text('Status: $connectionStatus'),
-              Text('ML Server IP: $ipML:80'),
-              Text('Prediction: $fristProductPredict'),
-              // Expanded(
-              // child:
+          body: Stack(children: [
+            Column(
+              children: <Widget>[
+                Text('Shop Name: $shopName'),
+                Text('Status: $connectionStatus'),
 
-              ElevatedButton(
-                child: const Text('debug predictions'),
-                onPressed: () {
-                  showModalBottomSheet<void>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return StatefulBuilder(builder:
-                          (BuildContext context, StateSetter setState) {
-                        return SizedBox(
-                          height: 200,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Text(predictionText
-                                    // Other styling properties if needed
-                                    ),
-                                ElevatedButton(
-                                  child: const Text('Close BottomSheet'),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      });
-                    },
-                  );
-                },
-              ),
-              // ),
-              ElevatedButton(
-                onPressed: () async => {
-                  !_isUseAI
-                      ? _initializeSocket(ipML, portML)
-                      : () {
-                          disconnectSocket();
-                          // socket.disconnect();
-                          // socket.destroy();
-                          // socket.disconnect();
-                          // socket.onDisconnect((_) {
-                          //   setState(() {
-                          //     connectionStatus = 'Disconnected';
-                          //   });
-                          // });
-                        }(),
-                  setState(() {
-                    // _isCapturing = false;
-                    _isUseAI = !_isUseAI;
-                  }),
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isUseAI
-                      ? Colors.red
-                      : Colors.grey, // This is what you need!
+                Text('Prediction: $fristProductPredict'),
+                // Expanded(
+                // child:
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (!showPanel)
+                      RawMaterialButton(
+                        onPressed: () async => {
+                          setState(() {
+                            showPanel = !showPanel; // Toggle show/hide panel
+                          })
+                        },
+                        elevation: 2.0,
+                        padding: const EdgeInsets.all(15.0),
+                        shape: const CircleBorder(),
+                        child: const Icon(
+                          Icons.settings,
+                          size: 36.0,
+                        ),
+                      ),
+                    RawMaterialButton(
+                      onPressed: () async => {
+                        !_isUseAI
+                            ? _initializeSocket(ipML, portML)
+                            : () {
+                                disconnectSocket();
+                              }(),
+                        setState(() {
+                          _isUseAI = !_isUseAI;
+                        }),
+                      },
+                      elevation: 2.0,
+                      fillColor: _isUseAI ? Colors.red : Colors.grey,
+                      padding: const EdgeInsets.all(15.0),
+                      shape: const CircleBorder(),
+                      child: const Text(
+                        'AI',
+                        style: TextStyle(
+                          fontSize: 32,
+                        ),
+                      ),
+                    ),
+                    RawMaterialButton(
+                      onPressed: () async => {
+                        // _isCapturing = false,
+                        setState(() {
+                          _isUseBarcode = !_isUseBarcode;
+                        }),
+                      },
+                      elevation: 2.0,
+                      fillColor: _isUseBarcode ? Colors.red : Colors.grey,
+                      padding: const EdgeInsets.all(15.0),
+                      shape: const CircleBorder(),
+                      child: const Icon(
+                        Icons.qr_code_2_rounded,
+                        size: 36.0,
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text('Connect AI'),
-              ),
 
-              RawMaterialButton(
-                onPressed: () async => {
-                  // _isCapturing = false,
-                  setState(() {
-                    _isUseBarcode = !_isUseBarcode;
-                  }),
-                },
-                elevation: 2.0,
-                fillColor: _isUseBarcode ? Colors.red : Colors.grey,
-                padding: const EdgeInsets.all(15.0),
-                shape: const CircleBorder(),
-                child: const Text('Barcode'),
-              ),
-              // ElevatedButton(
-              //   onPressed: () async => {
-              //     // _isCapturing = false,
-              //     setState(() {
-              //       _isUseBarcode = !_isUseBarcode;
-              //     }),
-              //   },
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: _isUseBarcode ? Colors.red : Colors.grey,
-              //   ),
-              //   child: const Text('Barcode'),
-              // ),
-              Text('Result: $barcode'),
-              Expanded(
-                child: CameraPreview(controller),
-              ),
-
-              // TextButton(
-              //   onPressed: _scanBarcode,
-              //   child: const Text('Scan Barcode'),
-              // ),
-              // TextButton(
-              //   onPressed: () async {
-              //     _isCapturing = false;
-              //     _i
-              //     // final XFile imageFile = await _controller.takePicture();
-              //     // final List<int> imageBytes = await imageFile.readAsBytes();
-              //     // _sendImage(Uint8List.fromList(imageBytes));
-              //     _initializeSocket(ipML, portML);
-              //   },
-              //   child: const Text('Classification!'),
-              // ),
-              TextField(
-                keyboardType: TextInputType.phone,
-                onSubmitted: (text) {
-                  setState(() {
-                    ipML = text;
-                  });
-                },
-                decoration: const InputDecoration(
-                  hintText: 'Enter ML Server IP',
+                Text('Result: $barcode'),
+                Expanded(
+                  child: CameraPreview(controller),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text('add: $fristProductPredict'),
+                              Text('Qty: ${qty.toInt()}'),
+                            ]),
+                        Slider(
+                          value: qty.toDouble(),
+                          min: 1,
+                          max: 10,
+                          divisions:
+                              9, // Number of discrete divisions between min and max
+                          onChanged: (newValue) {
+                            setState(() {
+                              qty = newValue.toInt();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: const Text('to cart'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Visibility(
+              visible: showPanel,
+              child: Container(
+                color: Colors.black
+                    .withOpacity(0.2), // Semi-transparent background
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('ML Server IP: $ipML:80'),
+                      Text(predictionText),
+                      TextField(
+                        keyboardType: TextInputType.phone,
+                        onSubmitted: (text) {
+                          setState(() {
+                            ipML = text;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          hintText: 'Enter ML Server IP',
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            showPanel = !showPanel; // Toggle show/hide panel
+                          });
+                        },
+                        child: const Text('Hide Panel'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            ),
+          ]),
         ));
   }
 
