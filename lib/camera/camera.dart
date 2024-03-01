@@ -17,6 +17,7 @@ import 'package:image/image.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image/image.dart' as imglib;
+import 'package:visibility_detector/visibility_detector.dart';
 
 class Throttler {
   Throttler({required this.milliSeconds});
@@ -54,36 +55,30 @@ class _CameraScreenState extends State<CameraScreen> {
   late CameraController controller;
   late Throttler throttler;
   late StreamSubscription<int> timer;
-  String ipML = "192.168.1.160"; // Use the server IP here
-  int portML = 80; // Use the server port here
-  late IO.Socket socket = IO.io('http://$ipML:$portML', <String, dynamic>{
-    'transports': ['websocket'],
-    'autoConnect': true,
-  });
+  static String ipML = "192.168.1.160"; // Use the server IP here
+  static int portML = 80; // Use the server port here
+  static late IO.Socket socket;
 
-  String connectionStatus = "Connecting...";
+  String connectionStatus = "enter ip...";
   String predictionText = "";
   late Timer _reconnectTimer;
   late Timer _imageSendTimer;
-  bool _isCapturing =
-      false; // Flag to track whether a picture is being captured
+  bool _streamPaused = false;
+  // bool _isCapturing =
+  //     false; // Flag to track whether a picture is being captured
   bool _isUseAI = false; //
   bool _isUseBarcode = false; //
   late Timer _timer;
 
   late BarcodeScanner barcodeScanner;
+  String fristProductPredict = '';
   @override
   void initState() {
     super.initState();
     fetchShopName();
     barcodeScanner = BarcodeScanner();
     throttler = Throttler(milliSeconds: 500);
-    _reconnectTimer = Timer.periodic(Duration(seconds: 10), (timer) {
-      if (!socket.connected) {
-        print('Attempting to reconnect...');
-        _initializeSocket(ipML, portML);
-      }
-    });
+
     _initializeCamera();
 
     setState(() {});
@@ -107,7 +102,9 @@ class _CameraScreenState extends State<CameraScreen> {
       controller.startImageStream((image) async {
         throttler.run(() async {
           try {
-            processImage(image);
+            if (!_streamPaused) {
+              processImage(image);
+            }
           } on PlatformException catch (e) {
             debugPrint(
                 "==== checkLiveness Method is not implemented ${e.message}");
@@ -118,9 +115,13 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   void _initializeSocket(String ip, int port) {
-    socket.disconnect();
-    socket.destroy();
-
+    // disconnectSocket();
+    // socket.disconnect();
+    // socket.destroy();
+    setState(() {
+      connectionStatus = 'Connecting...';
+    });
+    print('connecting $ip:$port');
     socket = IO.io('http://$ip:$port', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
@@ -128,19 +129,37 @@ class _CameraScreenState extends State<CameraScreen> {
 
     socket.onConnect((_) {
       setState(() {
-        connectionStatus = 'Connected to server';
+        connectionStatus = 'Connected';
       });
     });
+    socket.onDisconnect((_) {
+      setState(() {
+        connectionStatus = 'Disconnected';
+      });
+    });
+    socket.connect();
     socket.on('prediction', (data) {
       // Handle the predicted text received from Python
       String prediction = data['text'];
       print('Received prediction: $prediction');
       setState(() {
-        predictionText = prediction;
+        predictionText = prediction.replaceAll("#", "\n");
+        fristProductPredict = prediction.split('#').first;
       });
     });
 
     // Add listeners for other events as needed
+  }
+
+  void disconnectSocket() {
+    if (socket.connected) {
+      socket.disconnect();
+      socket.onDisconnect((_) {
+        setState(() {
+          connectionStatus = 'Disconnected';
+        });
+      });
+    }
   }
 
   void processImage(CameraImage image) async {
@@ -163,7 +182,7 @@ class _CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       print('Error processing image: $e');
     } finally {
-      _isCapturing = false;
+      // _isCapturing = false;
     }
   }
 
@@ -199,87 +218,147 @@ class _CameraScreenState extends State<CameraScreen> {
       return Container();
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Live Video Streaming'),
-      ),
-      body: Column(
-        children: <Widget>[
-          Text('Shop Name: $shopName'),
-          Text('Status: $connectionStatus'),
-          Text('ML Server IP: $ipML:80'),
-          // Text('Prediction: $predictionText'),
-          // Expanded(
-          // child:
-          Text(
-            predictionText.replaceAll("#", "\n"),
-            // Other styling properties if needed
+    return VisibilityDetector(
+        key: const Key('camera_screen_detector'),
+        onVisibilityChanged: (visibilityInfo) {
+          print(visibilityInfo.visibleFraction);
+          setState(() {
+            _streamPaused = !(visibilityInfo.visibleFraction > 0.8);
+          });
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Live Video Streaming'),
           ),
-          // ),
-          ElevatedButton(
-            onPressed: () async => {
-              !_isUseAI
-                  ? _initializeSocket(ipML, portML)
-                  : () {
-                      socket.disconnect();
-                      socket.destroy();
-                    }(),
-              setState(() {
-                _isCapturing = false;
-                _isUseAI = !_isUseAI;
-              }),
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  _isUseAI ? Colors.red : Colors.grey, // This is what you need!
-            ),
-            child: const Text('AI'),
+          body: Column(
+            children: <Widget>[
+              Text('Shop Name: $shopName'),
+              Text('Status: $connectionStatus'),
+              Text('ML Server IP: $ipML:80'),
+              Text('Prediction: $fristProductPredict'),
+              // Expanded(
+              // child:
+
+              ElevatedButton(
+                child: const Text('debug predictions'),
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return StatefulBuilder(builder:
+                          (BuildContext context, StateSetter setState) {
+                        return SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(predictionText
+                                    // Other styling properties if needed
+                                    ),
+                                ElevatedButton(
+                                  child: const Text('Close BottomSheet'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+                    },
+                  );
+                },
+              ),
+              // ),
+              ElevatedButton(
+                onPressed: () async => {
+                  !_isUseAI
+                      ? _initializeSocket(ipML, portML)
+                      : () {
+                          disconnectSocket();
+                          // socket.disconnect();
+                          // socket.destroy();
+                          // socket.disconnect();
+                          // socket.onDisconnect((_) {
+                          //   setState(() {
+                          //     connectionStatus = 'Disconnected';
+                          //   });
+                          // });
+                        }(),
+                  setState(() {
+                    // _isCapturing = false;
+                    _isUseAI = !_isUseAI;
+                  }),
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isUseAI
+                      ? Colors.red
+                      : Colors.grey, // This is what you need!
+                ),
+                child: const Text('Connect AI'),
+              ),
+
+              RawMaterialButton(
+                onPressed: () async => {
+                  // _isCapturing = false,
+                  setState(() {
+                    _isUseBarcode = !_isUseBarcode;
+                  }),
+                },
+                elevation: 2.0,
+                fillColor: _isUseBarcode ? Colors.red : Colors.grey,
+                padding: const EdgeInsets.all(15.0),
+                shape: const CircleBorder(),
+                child: const Text('Barcode'),
+              ),
+              // ElevatedButton(
+              //   onPressed: () async => {
+              //     // _isCapturing = false,
+              //     setState(() {
+              //       _isUseBarcode = !_isUseBarcode;
+              //     }),
+              //   },
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: _isUseBarcode ? Colors.red : Colors.grey,
+              //   ),
+              //   child: const Text('Barcode'),
+              // ),
+              Text('Result: $barcode'),
+              Expanded(
+                child: CameraPreview(controller),
+              ),
+
+              // TextButton(
+              //   onPressed: _scanBarcode,
+              //   child: const Text('Scan Barcode'),
+              // ),
+              // TextButton(
+              //   onPressed: () async {
+              //     _isCapturing = false;
+              //     _i
+              //     // final XFile imageFile = await _controller.takePicture();
+              //     // final List<int> imageBytes = await imageFile.readAsBytes();
+              //     // _sendImage(Uint8List.fromList(imageBytes));
+              //     _initializeSocket(ipML, portML);
+              //   },
+              //   child: const Text('Classification!'),
+              // ),
+              TextField(
+                keyboardType: TextInputType.phone,
+                onSubmitted: (text) {
+                  setState(() {
+                    ipML = text;
+                  });
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Enter ML Server IP',
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async => {
-              _isCapturing = false,
-              setState(() {
-                _isUseBarcode = !_isUseBarcode;
-              }),
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isUseBarcode ? Colors.red : Colors.grey,
-            ),
-            child: const Text('Barcode'),
-          ),
-          Text('Result: $barcode'),
-          Expanded(
-            child: CameraPreview(controller),
-          ),
-          // TextButton(
-          //   onPressed: _scanBarcode,
-          //   child: const Text('Scan Barcode'),
-          // ),
-          // TextButton(
-          //   onPressed: () async {
-          //     _isCapturing = false;
-          //     _i
-          //     // final XFile imageFile = await _controller.takePicture();
-          //     // final List<int> imageBytes = await imageFile.readAsBytes();
-          //     // _sendImage(Uint8List.fromList(imageBytes));
-          //     _initializeSocket(ipML, portML);
-          //   },
-          //   child: const Text('Classification!'),
-          // ),
-          TextField(
-            onSubmitted: (text) {
-              setState(() {
-                ipML = text;
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: 'Enter ML Server IP',
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
+        ));
   }
 
   @override
