@@ -1,7 +1,8 @@
 import 'dart:io';
 
 // import 'package:app/Camera.dart';
-import 'package:app/model/cart.dart';
+import 'package:app/service/cart.dart';
+import 'package:app/service/productService.dart';
 import 'package:flutter/material.dart';
 // import 'package:photo_gallery/photo_gallery.dart';
 // import 'package:permission_handler/permission_handler.dart';
@@ -71,6 +72,7 @@ class Stock extends StatefulWidget {
 
 class _StockState extends State<Stock> {
   final _future = Supabase.instance.client.from('product').select();
+  final productService = ProductService();
 
   // final cartController = Get.put(CartController());
   final cartController = Get.find<CartController>();
@@ -96,6 +98,7 @@ class _StockState extends State<Stock> {
 
   Container productTitle(Map<String, dynamic> product) {
     final product_id = product['product_id'].toString();
+    final product_name = product['product_name'].toString();
     return Container(
       padding: const EdgeInsets.all(8.0),
       color:
@@ -106,12 +109,17 @@ class _StockState extends State<Stock> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                product['product_name'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
+              TextButton(
+                onPressed: () {
+                  productService.getProductByName(product_name);
+                },
+                child: Text(
+                  product_name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
                 ),
               ),
               Text(
@@ -125,19 +133,38 @@ class _StockState extends State<Stock> {
             ],
           ),
           const SizedBox(height: 5.0),
-          Text(
-            'Remaining: ${product['stock']}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14.0,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  productService.getProductById(product_id);
+                },
+                child: Text(
+                  product_id,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.0,
+                  ),
+                ),
+              ),
+              Text(
+                'Remaining: ${product['stock']}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.0,
+                ),
+              ),
+            ],
           ),
           TextButton(
-              onPressed: () {
-                cartController.addToCart(product, 1);
-                print(product.toString());
-              },
-              child: Text('add to cart:${product['product_id']}')),
+            onPressed: () {
+              cartController.addToCart(product, 1);
+              // print(product.toString());
+            },
+            child: const Text('add to cart'),
+          ),
         ],
       ),
     );

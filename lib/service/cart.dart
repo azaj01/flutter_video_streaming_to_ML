@@ -9,8 +9,8 @@ class CartController extends GetxController {
   List<Map<String, dynamic>> get cartItems => _cartItems.toList();
 
   void addToCart(Map<String, dynamic> product, int quantity) {
-    print(product['product_id']);
-    print(product['product_id'].runtimeType);
+    // print(product['product_id']);
+    // print(product['product_id'].runtimeType);
     int index = _cartItems.indexWhere(
         (item) => item['product']['product_id'] == product['product_id']);
 
@@ -60,7 +60,7 @@ class CartController extends GetxController {
         'total_amount': item['product']['price'] * item['quantity'],
       };
     }).toList();
-    print(products);
+    // print(products);
     // Call the RPC function on Supabase backend
     final response = await Supabase.instance.client.rpc('insert_checkout',
         params: {

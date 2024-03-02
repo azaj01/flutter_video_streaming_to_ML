@@ -1,4 +1,4 @@
-import 'package:app/model/cart.dart';
+import 'package:app/service/cart.dart';
 import 'package:flutter/material.dart';
 import 'package:app/utils/CustomTextStyle.dart';
 import 'package:get/get.dart';

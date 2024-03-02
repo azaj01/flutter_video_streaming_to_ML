@@ -2,7 +2,7 @@ import 'package:app/user/login.dart';
 import 'package:flutter/material.dart';
 // import 'package:supabase_authentication/homescreen.dart';
 // import 'package:supabase_authentication/login.dart';
-import 'package:app/utils/supabase_utils.dart';
+import 'package:app/service/supabase_utils.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);

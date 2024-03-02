@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'model/cart.dart';
+import 'service/cart.dart';
 import 'package:badges/badges.dart' as badges;
 
 List<CameraDescription> cameras = [];

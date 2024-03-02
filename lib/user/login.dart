@@ -2,7 +2,7 @@ import 'package:app/main.dart';
 import 'package:app/user/sign_up.dart';
 import 'package:flutter/material.dart';
 // import 'package:supabase_authentication/signup.dart';
-import 'package:app/utils/supabase_utils.dart';
+import 'package:app/service/supabase_utils.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
