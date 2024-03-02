@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:app/camera/utils/imageConverter.dart';
+import 'package:app/service/cart.dart';
+import 'package:app/service/productService.dart';
 import 'package:app/style.dart' as style;
 import 'package:flutter/foundation.dart';
 import 'dart:typed_data';
@@ -50,6 +52,8 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   final supabase = Supabase.instance.client;
+  final cartController = Get.find<CartController>();
+  final productService = ProductService();
   String shopName = ''; // Variable to store the shop name
   String barcode = '';
   late CameraController controller;
@@ -340,7 +344,11 @@ class _CameraScreenState extends State<CameraScreen> {
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final product = await productService
+                              .getProductByName(fristProductPredict);
+                          cartController.addToCart(product, qty.toInt());
+                        },
                         child: const Text('to cart'),
                       ),
                     ],
