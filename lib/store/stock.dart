@@ -1,67 +1,12 @@
 import 'dart:io';
 
-// import 'package:app/Camera.dart';
 import 'package:app/service/cart.dart';
 import 'package:app/service/productService.dart';
 import 'package:flutter/material.dart';
-// import 'package:photo_gallery/photo_gallery.dart';
-// import 'package:permission_handler/permission_handler.dart';
+
 import 'package:app/style.dart' as style;
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-// import 'package:app/memory/displayphoto.dart';
-
-// class Stock extends StatefulWidget {
-//   const Stock({super.key});
-
-//   @override
-//   State<Stock> createState() => _StockState();
-// }
-
-// class _StockState extends State<Stock> {
-// Widget memoryWidget = const SizedBox.shrink();
-
-// List<Album>? _albums;
-
-// @override
-// void initState() {
-// super.initState();
-// initAsync();
-// }
-
-// Future<void> initAsync() async {
-// if (await _promptPermissionSetting()) {
-// List<Album> albums =
-//     await PhotoGallery.listAlbums(mediumType: MediumType.image);
-// setState(() {
-// print("Album setState");
-// _albums = albums;
-// Album photo = _albums!.firstWhere((element) => element.name == "AirWareness");
-// if (photo.count > 0) {
-//   memoryWidget = AlbumPage(key: Key('$photo.count'), album: photo);
-// }
-// });
-// }
-// setState(() {});
-// }
-
-// Future<bool> _promptPermissionSetting() async {
-//   if (Platform.isIOS) {
-//     // Request storage and photo permissions on iOS
-//     var storageStatus = await Permission.storage.request();
-//     var photoStatus = await Permission.photos.request();
-//     if (storageStatus.isGranted && photoStatus.isGranted) {
-//       return true;
-//     }
-//   } else if (Platform.isAndroid) {
-//     // Request storage permission on Android
-//     var storageStatus = await Permission.storage.request();
-//     if (storageStatus.isGranted) {
-//       return true;
-//     }
-//   }
-//   return false;
-// }
 
 class Stock extends StatefulWidget {
   const Stock({super.key});
@@ -74,7 +19,6 @@ class _StockState extends State<Stock> {
   final _future = Supabase.instance.client.from('product').select();
   final productService = ProductService();
 
-  // final cartController = Get.put(CartController());
   final cartController = Get.find<CartController>();
   Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
     return showDialog(
