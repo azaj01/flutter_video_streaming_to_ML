@@ -82,7 +82,14 @@ class _StockState extends State<Stock> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(product['product_name']),
-          content: Text(product['description']),
+          content: ListTile(
+            leading: product['image_path'] != null
+                ? Image.network(product['image_path'])
+                : Image.network(
+                    'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
+            title: Text(product['description']),
+            subtitle: Text('${product['product_id']}'),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -106,20 +113,36 @@ class _StockState extends State<Stock> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          TextButton(
+            onPressed: () {
+              productService.getProductByName(product_name);
+            },
+            child: Text(
+              product_name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14.0,
+              ),
+              maxLines: null, // Allow the text to wrap to new lines
+              overflow:
+                  TextOverflow.clip, // Handle overflowing text by clipping it
+            ),
+          ),
+          //   ],
+          // ),
+          const SizedBox(height: 2.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(
-                onPressed: () {
-                  productService.getProductByName(product_name);
-                },
-                child: Text(
-                  product_name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
+              Text(
+                'Remaining: ${product['stock'] < 0 ? 0 : product['stock']}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.0,
                 ),
               ),
               Text(
@@ -134,36 +157,17 @@ class _StockState extends State<Stock> {
           ),
           const SizedBox(height: 5.0),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 10)),
                 onPressed: () {
-                  productService.getProductById(product_id);
+                  cartController.addToCart(product, 1);
                 },
-                child: Text(
-                  product_id,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.0,
-                  ),
-                ),
-              ),
-              Text(
-                'Remaining: ${product['stock']}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.0,
-                ),
+                child: const Text('add to cart'),
               ),
             ],
-          ),
-          TextButton(
-            onPressed: () {
-              cartController.addToCart(product, 1);
-              // print(product.toString());
-            },
-            child: const Text('add to cart'),
           ),
         ],
       ),
@@ -200,13 +204,16 @@ class _StockState extends State<Stock> {
                   clipBehavior: Clip.antiAlias,
                   child: Stack(
                     children: [
-                      Image.network(
-                        product[
-                            'image_path'], // Assuming 'image_path' contains the URL of the image
-                        fit: BoxFit.cover,
-                        height: double.infinity,
-                        width: double.infinity,
-                      ),
+                      product['image_path'] != null
+                          ? Image.network(
+                              product[
+                                  'image_path'], // Assuming 'image_path' contains the URL of the image
+                              fit: BoxFit.cover,
+                              height: double.infinity,
+                              width: double.infinity,
+                            )
+                          : Image.network(
+                              'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
                       Positioned(
                         bottom: 0,
                         left: 0,

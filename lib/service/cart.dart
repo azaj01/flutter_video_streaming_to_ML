@@ -62,11 +62,10 @@ class CartController extends GetxController {
     }).toList();
     // print(products);
     // Call the RPC function on Supabase backend
-    final response = await Supabase.instance.client.rpc('insert_checkout',
-        params: {
-          'payment_id': '94f9ddc7-5a6c-4b48-adf2-86a33bb138a3',
-          'products': products
-        });
+    final response = await Supabase.instance.client.rpc('checkout', params: {
+      // 'payment_id': '94f9ddc7-5a6c-4b48-adf2-86a33bb138a3',
+      'products': products
+    });
     // print(response.);
     if (response != null) {
       print('Error: $response');

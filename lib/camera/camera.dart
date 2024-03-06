@@ -240,7 +240,7 @@ class _CameraScreenState extends State<CameraScreen> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Live Video Streaming'),
+            title: const Text('Camera Streaming'),
           ),
           body: Stack(children: [
             Column(
@@ -267,7 +267,7 @@ class _CameraScreenState extends State<CameraScreen> {
                         shape: const CircleBorder(),
                         child: const Icon(
                           Icons.settings,
-                          size: 36.0,
+                          size: 18.0,
                         ),
                       ),
                     RawMaterialButton(
@@ -288,7 +288,7 @@ class _CameraScreenState extends State<CameraScreen> {
                       child: const Text(
                         'AI',
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 17,
                         ),
                       ),
                     ),
@@ -305,7 +305,7 @@ class _CameraScreenState extends State<CameraScreen> {
                       shape: const CircleBorder(),
                       child: const Icon(
                         Icons.qr_code_2_rounded,
-                        size: 36.0,
+                        size: 18.0,
                       ),
                     ),
                   ],
