@@ -20,8 +20,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           GestureDetector(
             onTap: () async {
-              await Navigator.pushNamedAndRemoveUntil(
-                  context, '/home', (Route<dynamic> route) => false);
+              Navigator.popUntil(context, ModalRoute.withName('/home'));
               // Navigator.push(
               //   context,
               //   MaterialPageRoute(builder: (context) => MainScreen()),

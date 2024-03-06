@@ -24,7 +24,6 @@ import 'package:badges/badges.dart' as badges;
 List<CameraDescription> cameras = [];
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // final List<CameraDescription> cameras = await availableCameras();
   await Supabase.initialize(
     url: 'https://wwqspguoizevnbocschg.supabase.co',
     anonKey:
@@ -45,18 +44,12 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // Initialize Supabase client
-  final supabaseClient = SupabaseClient(
-    'YOUR_SUPABASE_URL',
-    'YOUR_SUPABASE_KEY',
-  );
-
   MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Supabase Login Demo',
+      title: 'Cap_Snap',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -78,8 +71,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreen extends State<MainScreen> {
-  // late Timer _everyHour;
-  // ForecastData _forecastData = ForecastData();
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -88,52 +79,14 @@ class _MainScreen extends State<MainScreen> {
     });
   }
 
-  Future<void> _forecastUpdate() async {
-    setState(() {
-      // _forecastData = ForecastData(created: _forecastData.created);
-    });
-
-    // var newForecastData = await ForecastData.init(
-    //     Userposition.latitudeChosen, Userposition.longitudeChosen);
-    setState(() {
-      // _forecastData = newForecastData;
-    });
-  }
-
-  Future<void> _initData() async {
-    try {
-      // await fetchAndSetUserLocation();
-
-      _forecastUpdate();
-      // _everyHour = Timer.periodic(const Duration(hours: 1), (Timer t) {
-      // _forecastUpdate();
-      // });
-    } catch (_) {
-      // TODO: do something if can't fetch gps location
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _initData().whenComplete(() => null);
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
-      // print(event.event);
       if (event.event == AuthChangeEvent.signedIn) {
         print('are login');
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => ProfilePage()),
-        // );
       } else if (event.event == AuthChangeEvent.signedOut) {
         print('signedOut redirect');
-
-        // Navigator.pushNamedAndRemoveUntil(
-        //     context, '/home', (Route<dynamic> route) => false);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const LoginPage()),
-        // );
       } else {
         print(event.event);
       }
@@ -141,17 +94,14 @@ class _MainScreen extends State<MainScreen> {
   }
 
   final cartController = Get.put(CartController());
-  // final cartController = Get.put<CartController>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      // (size themselves to avoid the onscreen keyboard)
       backgroundColor: Colors.black,
       appBar: CustomAppBar(
-        onTap:
-            // Handle onTap event here
-            () async {
+        onTap: () async {
           if (await LoginUtils.checkLoginStatus(context)) {
             await Navigator.push(
               context,
@@ -161,18 +111,14 @@ class _MainScreen extends State<MainScreen> {
         },
         showIcon: Icon(Icons.person),
       ),
-
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           CameraScreen(
             cameras: cameras,
           ),
-          // const Stock(),
           const Stock(),
           const CartPage(),
-          // ProfilePage()
-          // Forecast(onRefresh: _forecastUpdate, data: _forecastData)
         ],
       ),
       bottomNavigationBar: Container(
@@ -187,12 +133,7 @@ class _MainScreen extends State<MainScreen> {
                 icon: Icon(Icons.filter_drama),
                 label: 'Stock',
                 backgroundColor: style.greyUI),
-            // BottomNavigationBarItem(
-            //     icon: Icon(Icons.shopping_bag_rounded),
-            //     label: 'Cart',
-            //     backgroundColor: style.greyUI)
             BottomNavigationBarItem(
-              // Use the Badge widget to display a badge on the shopping bag icon
               icon: badges.Badge(
                 badgeContent: Obx(
                   () => // Obx to reactively update the badge

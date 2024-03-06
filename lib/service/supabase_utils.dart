@@ -14,9 +14,9 @@ class SupabaseManager {
     debugPrint("email:$email password:$password");
     final response =
         await client.auth.signUp(email: email ?? '', password: password ?? '');
-    Navigator.push(
+    Navigator.pushReplacementNamed(
       context,
-      MaterialPageRoute(builder: (context) => ProfilePage()),
+      '/profile',
     );
     // debugPrint(result.toJson().toString());
 
@@ -35,9 +35,9 @@ class SupabaseManager {
     final response = await client.auth
         .signInWithPassword(email: email, password: password ?? '');
 
-    Navigator.push(
+    Navigator.pushReplacementNamed(
       context,
-      MaterialPageRoute(builder: (context) => ProfilePage()),
+      '/profile',
     );
     // debugPrint(result.data!.toJson().toString());
     // print(response);

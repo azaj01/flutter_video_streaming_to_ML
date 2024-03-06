@@ -12,7 +12,7 @@ class LoginUtils {
     final Session? session = Supabase.instance.client.auth.currentSession;
     if (session == null) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
       // Navigator.pushReplacementNamed(context, '/login');
     }
