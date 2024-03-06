@@ -174,6 +174,7 @@ class _StockState extends State<Stock> {
     );
   }
 
+  String searchText = "";
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -183,47 +184,71 @@ class _StockState extends State<Stock> {
           return const Center(child: CircularProgressIndicator());
         }
         List<Map<String, dynamic>> products = snapshot.data!;
+        final filteredProducts = products
+            .where((product) => product['product_name']
+                .toString()
+                .toLowerCase()
+                .contains(searchText))
+            .toList();
+        filteredProducts
+            .sort((a, b) => a['product_id'].compareTo(b['product_id']));
 
-        // Sort the products by the 'index' field
-        products.sort((a, b) => a['product_id'].compareTo(b['product_id']));
-        return GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // You can adjust the number of columns here
-            crossAxisSpacing: 10.0,
-            mainAxisSpacing: 10.0,
-            childAspectRatio: 0.75, // You can adjust the aspect ratio as needed
-          ),
-          itemCount: products.length,
-          itemBuilder: ((context, index) {
-            final product = products[index];
-            return GestureDetector(
-                onTap: () {
-                  diaLog(context, product);
-                },
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    children: [
-                      product['image_path'] != null
-                          ? Image.network(
-                              product[
-                                  'image_path'], // Assuming 'image_path' contains the URL of the image
-                              fit: BoxFit.cover,
-                              height: double.infinity,
-                              width: double.infinity,
-                            )
-                          : Image.network(
-                              'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: productTitle(product),
-                      ),
-                    ],
-                  ),
-                ));
-          }),
+        return Column(
+          children: [
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchText = value.toLowerCase();
+                });
+              },
+              decoration: const InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: 'Search by product name',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+            Expanded(
+                child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10.0,
+                      mainAxisSpacing: 10.0,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: filteredProducts.length,
+                    itemBuilder: ((context, index) {
+                      final product = filteredProducts[index];
+                      return GestureDetector(
+                        onTap: () {
+                          diaLog(context, product);
+                        },
+                        child: Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            children: [
+                              product['image_path'] != null
+                                  ? Image.network(
+                                      product['image_path'],
+                                      fit: BoxFit.cover,
+                                      height: double.infinity,
+                                      width: double.infinity,
+                                    )
+                                  : Image.network(
+                                      'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: productTitle(product),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    })))
+          ],
         );
       },
     );
