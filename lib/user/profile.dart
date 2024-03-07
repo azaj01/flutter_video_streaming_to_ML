@@ -2,6 +2,7 @@
 import 'package:app/main.dart';
 import 'package:app/user/auth.dart';
 import 'package:app/user/cart.dart';
+import 'package:app/user/history.dart';
 import 'package:app/utils/appbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -44,60 +45,59 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     const user = UserPreferences.myUser;
 
-    return Container(
-      child: Builder(
-        builder: (context) => Scaffold(
-            appBar: CustomAppBar(
-              onTap: () async {
-                final currentContext = context;
-                final isLoggedIn =
-                    await LoginUtils.checkLoginStatus(currentContext);
-                if (isLoggedIn) {
-                  Navigator.push(
-                    currentContext,
-                    MaterialPageRoute(builder: (currentContext) => CartPage()),
-                  );
-                }
-              },
-              showIcon: Icon(Icons.shopping_bag_rounded),
-            ),
-            body: ListView(
-              physics: BouncingScrollPhysics(),
-              children: [
-                ProfileWidget(
-                  onClicked: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) => EditProfilePage()),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                buildName(user),
-                const SizedBox(height: 24),
-                buildCredit(user),
-                IconButton(
-                  onPressed: signOut,
-                  icon: Icon(Icons.logout),
-                ),
-              ],
-            ),
-            floatingActionButton: Stack(
-              children: <Widget>[
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      final Session? session =
-                          Supabase.instance.client.auth.currentSession;
-                      print(session);
-                    },
-                    child: Icon(Icons.deblur),
-                  ),
-                ),
-              ],
-            )),
+    return Scaffold(
+      appBar: CustomAppBar(
+        onTap: () async {
+          final currentContext = context;
+          final isLoggedIn = await LoginUtils.checkLoginStatus(currentContext);
+          if (isLoggedIn) {
+            Navigator.push(
+              currentContext,
+              MaterialPageRoute(builder: (currentContext) => CartPage()),
+            );
+          }
+        },
+        showIcon: Icon(Icons.shopping_bag_rounded),
       ),
+      body: ListView(
+        physics: BouncingScrollPhysics(),
+        children: [
+          ProfileWidget(
+            onClicked: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => EditProfilePage()),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+          buildName(user),
+          const SizedBox(height: 24),
+          buildCredit(user),
+          const Expanded(
+            child: History(),
+          ),
+          IconButton(
+            onPressed: signOut,
+            icon: Icon(Icons.logout),
+          ),
+        ],
+      ),
+      floatingActionButton: Stack(
+        children: <Widget>[
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: FloatingActionButton(
+              onPressed: () {
+                // final Session? session =
+                // Supabase.instance.client.auth.currentSession;
+                // print(session);
+              },
+              child: Icon(Icons.deblur),
+            ),
+          ),
+        ],
+      ),
+      // ),
     );
   }
 

@@ -25,4 +25,14 @@ class ProductService {
     print(response);
     return response;
   }
+
+  Future<List<Map<String, dynamic>>> fetchCheckoutHistory() async {
+    final response = await Supabase.instance.client.rpc('get_checkout_history');
+    if (response is List) {
+      // Assuming each item in the list is of type Map<String, dynamic>
+      return response.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Invalid response type');
+    }
+  }
 }
