@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:app/camera/camera.dart';
+import 'package:app/service/stockController.dart';
 import 'package:app/store/stock.dart';
 import 'package:app/style.dart' as style;
 import 'package:app/user/auth.dart';
@@ -18,7 +19,7 @@ import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'service/cart.dart';
+import 'service/cartController.dart';
 import 'package:badges/badges.dart' as badges;
 
 List<CameraDescription> cameras = [];
@@ -94,7 +95,7 @@ class _MainScreen extends State<MainScreen> {
   }
 
   final cartController = Get.put(CartController());
-
+  final stockController = Get.put(StockController());
   @override
   Widget build(BuildContext context) {
     return Scaffold(

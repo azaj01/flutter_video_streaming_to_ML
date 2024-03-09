@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:app/service/cart.dart';
+import 'package:app/service/cartController.dart';
 import 'package:app/service/productService.dart';
+import 'package:app/service/stockController.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app/style.dart' as style;
@@ -16,9 +17,9 @@ class Stock extends StatefulWidget {
 }
 
 class _StockState extends State<Stock> {
-  final _future = Supabase.instance.client.from('product').select();
   final productService = ProductService();
 
+  final stockController = Get.find<StockController>();
   final cartController = Get.find<CartController>();
   Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
     return showDialog(
@@ -121,19 +122,16 @@ class _StockState extends State<Stock> {
   String searchText = "";
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        List<Map<String, dynamic>> products = snapshot.data!;
-        final filteredProducts = products
+    return Scaffold(body: Obx(
+      () {
+        final List<Map<String, dynamic>> filteredProducts = stockController
+            .productStock
             .where((product) => product['product_name']
                 .toString()
                 .toLowerCase()
-                .contains(searchText))
+                .contains(searchText.toLowerCase()))
             .toList();
+
         filteredProducts
             .sort((a, b) => a['product_id'].compareTo(b['product_id']));
 
@@ -195,6 +193,6 @@ class _StockState extends State<Stock> {
           ],
         );
       },
-    );
+    ));
   }
 }

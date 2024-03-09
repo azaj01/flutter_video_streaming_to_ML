@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app/service/cart.dart';
+import 'package:app/service/cartController.dart';
 import 'package:app/service/productService.dart';
 import 'package:flutter/material.dart';
 

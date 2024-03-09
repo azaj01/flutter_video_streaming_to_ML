@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:app/camera/utils/imageConverter.dart';
-import 'package:app/service/cart.dart';
+import 'package:app/service/cartController.dart';
 import 'package:app/service/productService.dart';
 import 'package:app/style.dart' as style;
 import 'package:flutter/foundation.dart';

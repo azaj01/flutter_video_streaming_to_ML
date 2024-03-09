@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app/service/stockController.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -71,6 +72,7 @@ class CartController extends GetxController {
       print('Error: $response');
     } else {
       print('Checkout successful!');
+      Get.find<StockController>().refreshProduct();
       clearCart();
     }
   }
