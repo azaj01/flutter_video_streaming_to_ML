@@ -115,9 +115,10 @@ class _MainScreen extends State<MainScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          CameraScreen(
-            cameras: cameras,
-          ),
+          // CameraScreen(
+          //   cameras: cameras,
+          // ),
+          const Stock(),
           const Stock(),
           const CartPage(),
         ],

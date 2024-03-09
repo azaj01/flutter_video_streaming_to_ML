@@ -22,27 +22,81 @@ class _StockState extends State<Stock> {
   final stockController = Get.find<StockController>();
   final cartController = Get.find<CartController>();
   Future<dynamic> diaLog(BuildContext context, Map<String, dynamic> product) {
+    final remaining = product['stock'] < 0 ? 0 : product['stock'];
+    int selectedValue = 1;
     return showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(product['product_name']),
-          content: ListTile(
-            leading: product['image_path'] != null
-                ? Image.network(product['image_path'])
-                : Image.network(
-                    'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
-            title: Text(product['description']),
-            subtitle: Text('${product['product_id']}'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    product['product_name'],
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                    ),
+                    maxLines: null,
+                    overflow: TextOverflow.clip,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: 'Close',
+                    onPressed: () {
+                      setState(() {
+                        Navigator.of(context).pop();
+                      });
+                    },
+                  ),
+                ],
+              ),
+              content: ListTile(
+                leading: product['image_path'] != null
+                    ? Image.network(product['image_path'])
+                    : Image.network(
+                        'https://static.vecteezy.com/system/resources/previews/020/662/271/non_2x/store-icon-logo-illustration-vector.jpg'),
+                title: Text(product['description']),
+                subtitle: Text('${product['product_id']}'),
+              ),
+              actions: <Widget>[
+                if (remaining > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      DropdownButton<int>(
+                        value: selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedValue = value!;
+                          });
+                        },
+                        items: List.generate(
+                          remaining,
+                          (index) => DropdownMenuItem<int>(
+                            value: index + 1,
+                            child: Text((index + 1).toString()),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            textStyle: const TextStyle(fontSize: 10)),
+                        onPressed: () {
+                          cartController.addToCart(product, selectedValue);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('add to cart'),
+                      ),
+                    ],
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -104,14 +158,29 @@ class _StockState extends State<Stock> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 10)),
-                onPressed: () {
-                  cartController.addToCart(product, 1);
-                },
-                child: const Text('add to cart'),
-              ),
+              product['stock'] > 0
+                  ? Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      color: Colors.blue,
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Text(
+                          'add to cart',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  : const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Text('Out of Stock'),
+                    ),
             ],
           ),
         ],
