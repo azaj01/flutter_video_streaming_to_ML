@@ -1,3 +1,5 @@
+import 'package:app/model/appUser.dart';
+import 'package:app/user/auth.dart';
 import 'package:app/user/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,60 +16,21 @@ class SupabaseManager {
     debugPrint("email:$email password:$password");
     final response =
         await client.auth.signUp(email: email ?? '', password: password ?? '');
+    await fetchAndSetupProfile();
     Navigator.pushReplacementNamed(
       context,
       '/profile',
     );
-    // debugPrint(result.toJson().toString());
-
-    // if (result != null) {
-    // showToastMessage('Registration Success', isError: false);
-    // Navigator.pushReplacementNamed(context, 'login');
-    // showToastMessage('Success', isError: false);
-    // } else if (result.error?.message != null) {
-    // showToastMessage('Error:${result.error!.message.toString()}',
-    //       // isError: true);
-    // }
   }
 
   Future<void> signInUser(context, {String? email, String? password}) async {
     debugPrint("email:$email password:$password");
     final response = await client.auth
         .signInWithPassword(email: email, password: password ?? '');
-
+    await fetchAndSetupProfile();
     Navigator.pushReplacementNamed(
       context,
       '/profile',
     );
-    // debugPrint(result.data!.toJson().toString());
-    // print(response);
-
-    // client.auth.onAuthStateChange.listen((event) => {
-    //       print(event.)
-
-    // if (event.event.name == 'signedIn')
-    //   {
-    //     print('a')
-    //     // Perform actions after user signs in
-    //   }
-    // else if (event.event.name == 'SIGNED_OUT')
-    //   {
-    //     print('b')
-    //     // Perform actions after user signs out
-    //   }
-    // });
-    // if (result.data != null) {
-    //   showToastMessage('Login Success', isError: false);
-    //   Navigator.pushReplacementNamed(context, '/home');
-    //   showToastMessage('Success', isError: false);
-    // } else if (result.error?.message != null) {
-    //   showToastMessage('Error:${result.error!.message.toString()}',
-    //       isError: true);
-    // }
-  }
-
-  Future<void> logout(context) async {
-    await client.auth.signOut();
-    Navigator.pushReplacementNamed(context, 'login');
   }
 }

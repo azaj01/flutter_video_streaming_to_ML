@@ -1,5 +1,7 @@
 import 'package:app/main.dart';
+import 'package:app/model/appUser.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Function onTap;
@@ -43,12 +45,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     showIcon,
-                    const Flexible(
-                      child: Text(
-                        'User',
-                        textScaleFactor: 0.7,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                    Flexible(
+                      child: Obx(
+                        () => Text(
+                          AppUser.first_name.value,
+                          textScaleFactor: 0.7,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                       ),
                     ),
                   ],

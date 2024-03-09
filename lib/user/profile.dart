@@ -8,43 +8,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:app/model/appUser.dart';
 import 'package:app/user/edit_profile.dart';
-import 'package:app/utils/user_preferences.dart';
 // import 'package:user_profile_ii_example/widget/appbar_widget.dart';
 // import 'package:user_profile_ii_example/widget/button_widget.dart';
 // import 'package:user_profile_ii_example/widget/numbers_widget.dart';
 import 'package:app/widget/profile_widget.dart';
+import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfilePage extends StatefulWidget {
-  @override
-  _ProfilePageState createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage> {
-  @override
-  void initState() {
-    super.initState();
-    // checkLoginStatus();
-  }
-
-  // Future<void> checkLoginStatus() async {
-  //   await LoginUtils.checkLoginStatus(context);
-  // }
-
-  Future<void> signOut() async {
+class ProfilePage extends StatelessWidget {
+  Future<void> signOut(BuildContext context) async {
     final response = await Supabase.instance.client.auth.signOut();
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => const MainScreen()),
-    // );
+
     Navigator.pushNamedAndRemoveUntil(
-        context, '/home', (Route<dynamic> route) => false);
+      context,
+      '/home',
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    const user = UserPreferences.myUser;
-
     return Scaffold(
       appBar: CustomAppBar(
         onTap: () async {
@@ -53,7 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
           if (isLoggedIn) {
             Navigator.push(
               currentContext,
-              MaterialPageRoute(builder: (currentContext) => CartPage()),
+              MaterialPageRoute(builder: (currentContext) => const CartPage()),
             );
           }
         },
@@ -70,74 +53,65 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
           const SizedBox(height: 24),
-          buildName(user),
-          const SizedBox(height: 24),
-          buildCredit(user),
+          buildName(),
           const Expanded(
             child: History(),
           ),
           IconButton(
-            onPressed: signOut,
-            icon: Icon(Icons.logout),
+            onPressed: () {
+              signOut(context);
+            },
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
-      floatingActionButton: Stack(
-        children: <Widget>[
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: FloatingActionButton(
-              onPressed: () {
-                // final Session? session =
-                // Supabase.instance.client.auth.currentSession;
-                // print(session);
-              },
-              child: Icon(Icons.deblur),
-            ),
-          ),
-        ],
-      ),
-      // ),
     );
   }
 
-  Widget buildName(AppUser user) => Column(
+  Widget buildName() => Column(
         children: [
-          Text(
-            user.userId,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
-          Text(
-            user.firstName,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
-          Text(
-            user.lastName,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          Obx(() => Text(
+                AppUser.email.value,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+              )),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Obx(() => Text(
+                    AppUser.first_name.value,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 24),
+                  )),
+              const SizedBox(width: 10),
+              Obx(() => Text(
+                    AppUser.last_name.value,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 24),
+                  )),
+            ],
           ),
           const SizedBox(height: 4),
-          Text(
-            user.email,
-            style: TextStyle(color: Colors.grey),
-          )
+          Obx(() => Text(
+                AppUser.customer_id.value,
+                style: TextStyle(color: Colors.grey),
+              )),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Credit',
+                style: TextStyle(fontSize: 20, height: 1.4),
+              ),
+              const SizedBox(width: 10),
+              Obx(() => Text(
+                    AppUser.credit.toString(),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  )),
+            ],
+          ),
         ],
-      );
-
-  Widget buildCredit(AppUser user) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 48),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Credit',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user.credit.toString(),
-              style: TextStyle(fontSize: 16, height: 1.4),
-            ),
-          ],
-        ),
       );
 }

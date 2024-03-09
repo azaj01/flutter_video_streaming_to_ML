@@ -1,15 +1,18 @@
-class AppUser {
-  final String userId;
-  final String firstName;
-  final String lastName;
-  final String email;
-  final double credit;
+import 'package:get/get.dart';
 
-  const AppUser({
-    required this.userId,
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.credit,
-  });
+class AppUser extends GetxController {
+  static var customer_id = 'H'.obs;
+  static var first_name = 'H'.obs;
+  static var last_name = 'H'.obs;
+  static var email = 'H'.obs;
+  static var credit = 0.0.obs;
+
+  static void setProfileData(
+      String id, String fname, String lname, String mail, double cdit) {
+    customer_id.value = id;
+    first_name.value = fname;
+    last_name.value = lname;
+    email.value = mail;
+    credit.value = cdit;
+  }
 }

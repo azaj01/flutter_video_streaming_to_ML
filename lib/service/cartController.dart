@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:app/service/stockController.dart';
+import 'package:app/user/auth.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,6 +75,7 @@ class CartController extends GetxController {
       print('Checkout successful!');
       Get.find<StockController>().refreshProduct();
       clearCart();
+      fetchAndSetupProfile();
     }
   }
 

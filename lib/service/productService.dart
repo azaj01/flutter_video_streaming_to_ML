@@ -12,7 +12,7 @@ class ProductService {
         .select()
         .eq('product_id', productId)
         .single();
-    print(response);
+    // print(response);
     return response;
   }
 
@@ -22,7 +22,7 @@ class ProductService {
         .select()
         .eq('product_name', productName)
         .single();
-    print(response);
+    // print(response);
     return response;
   }
 

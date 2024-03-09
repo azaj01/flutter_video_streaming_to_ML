@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:app/camera/camera.dart';
+import 'package:app/model/appUser.dart';
 import 'package:app/service/stockController.dart';
 import 'package:app/store/stock.dart';
 import 'package:app/style.dart' as style;
@@ -11,6 +12,7 @@ import 'package:app/user/login.dart';
 import 'package:app/user/profile.dart';
 import 'package:app/user/sign_up.dart';
 import 'package:app/utils/appbar.dart';
+import 'package:app/user/auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -88,10 +90,18 @@ class _MainScreen extends State<MainScreen> {
         print('are login');
       } else if (event.event == AuthChangeEvent.signedOut) {
         print('signedOut redirect');
+        AppUser.setProfileData('', '', '', '', 0.0);
       } else {
         print(event.event);
       }
     });
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    try {
+      await fetchAndSetupProfile();
+    } catch (_) {}
   }
 
   final cartController = Get.put(CartController());
@@ -115,10 +125,10 @@ class _MainScreen extends State<MainScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          // CameraScreen(
-          //   cameras: cameras,
-          // ),
-          const Stock(),
+          CameraScreen(
+            cameras: cameras,
+          ),
+          // const Stock(),
           const Stock(),
           const CartPage(),
         ],

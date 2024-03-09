@@ -26,13 +26,19 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     super.initState();
 
     controller = TextEditingController(text: widget.text);
+    controller.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
+    controller.removeListener(_onTextChanged);
     controller.dispose();
 
     super.dispose();
+  }
+
+  void _onTextChanged() {
+    widget.onChanged(controller.text);
   }
 
   @override
@@ -52,6 +58,11 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
               ),
             ),
             maxLines: widget.maxLines,
+            // onChanged: (text) {
+            //   setState(() {
+            //     widget.onChanged(text);
+            //   });
+            // },
           ),
         ],
       );
