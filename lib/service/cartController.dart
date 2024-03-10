@@ -10,6 +10,14 @@ class CartController extends GetxController {
 
   List<Map<String, dynamic>> get cartItems => _cartItems.toList();
 
+  double get sumTotal {
+    double total = 0;
+    for (var item in cartItems) {
+      total += item['product']['price'] * item['quantity'];
+    }
+    return total;
+  }
+
   void addToCart(Map<String, dynamic> product, int quantity) {
     // print(product['product_id']);
     // print(product['product_id'].runtimeType);

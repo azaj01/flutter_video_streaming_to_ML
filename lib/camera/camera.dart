@@ -54,7 +54,7 @@ class _CameraScreenState extends State<CameraScreen> {
   final supabase = Supabase.instance.client;
   final cartController = Get.find<CartController>();
   final productService = ProductService();
-  String shopName = ''; // Variable to store the shop name
+  String shopName = 'Shop'; // Variable to store the shop name
   String barcode = '';
   late CameraController controller;
   late Throttler throttler;
@@ -69,6 +69,7 @@ class _CameraScreenState extends State<CameraScreen> {
   late Timer _reconnectTimer;
   late Timer _imageSendTimer;
   bool _streamPaused = false;
+
   // bool _isCapturing =
   //     false; // Flag to track whether a picture is being captured
   bool _isUseAI = false; //
@@ -214,10 +215,7 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> fetchShopName() async {
-    // Replace 'shop_data_table' with your actual table name
-    final data = await supabase
-        .from('store_data')
-        .select(); // Use execute directly on the PostgrestClient instance
+    final data = await supabase.from('store_data').select();
 
     setState(() {
       shopName = data[0]['store_name'].toString();
@@ -245,10 +243,27 @@ class _CameraScreenState extends State<CameraScreen> {
           body: Stack(children: [
             Column(
               children: <Widget>[
-                Text('Shop Name: $shopName'),
-                Text('Status: $connectionStatus'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text('Shop Name: $shopName'),
+                    Text('Status: $connectionStatus'),
+                  ],
+                ),
 
-                Text('Prediction: $fristProductPredict'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text('Prediction: $fristProductPredict'),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text('Barcode: $barcode'),
+                  ],
+                ),
+
                 // Expanded(
                 // child:
 
@@ -311,30 +326,49 @@ class _CameraScreenState extends State<CameraScreen> {
                   ],
                 ),
 
-                Text('Result: $barcode'),
                 Expanded(
+                  // child: SizedBox(
+                  // height: 400, // Set the desired height here
                   child: CameraPreview(controller),
+                  // ),
                 ),
                 const SizedBox(height: 16),
-                if (fristProductPredict != '')
-                  Row(
+
+                Visibility(
+                  visible: fristProductPredict.isNotEmpty,
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text(
+                            'add:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.0,
+                            ),
+                          ),
+                          Text(
+                            fristProductPredict,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.0,
+                            ),
+                            maxLines: null,
+                            overflow: TextOverflow.clip,
+                          ),
                           Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text('add: $fristProductPredict'),
-                                Text('Qty: ${qty.toInt()}'),
-                              ]),
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text('Qty: ${qty.toInt()}'),
+                            ],
+                          ),
                           Slider(
                             value: qty.toDouble(),
                             min: 1,
                             max: 10,
-                            divisions:
-                                9, // Number of discrete divisions between min and max
+                            divisions: 9,
                             onChanged: (newValue) {
                               setState(() {
                                 qty = newValue.toInt();
@@ -353,6 +387,53 @@ class _CameraScreenState extends State<CameraScreen> {
                       ),
                     ],
                   ),
+                ),
+
+                Visibility(
+                  visible: barcode.isNotEmpty,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'add: $barcode',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10.0,
+                                ),
+                              ),
+                              Text('Qty: ${qty.toInt()}'),
+                            ],
+                          ),
+                          Slider(
+                            value: qty.toDouble(),
+                            min: 1,
+                            max: 10,
+                            divisions: 9,
+                            onChanged: (newValue) {
+                              setState(() {
+                                qty = newValue.toInt();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final product =
+                              await productService.getProductById(barcode);
+                          cartController.addToCart(product, qty.toInt());
+                        },
+                        child: const Text('to cart'),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             Visibility(
