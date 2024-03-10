@@ -23,15 +23,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'service/cartController.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 List<CameraDescription> cameras = [];
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Supabase.initialize(
-    url: 'https://wwqspguoizevnbocschg.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3cXNwZ3VvaXpldm5ib2NzY2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDE2NzI4MDEsImV4cCI6MjAxNzI0ODgwMX0.rwr6AyxkfyaE_7dgUbdYWrTiTob1K0aQvMubNX7-k08',
-  );
+      url: dotenv.env['URL'].toString(),
+      anonKey: dotenv.env['ANONKEY'].toString());
   try {
     cameras = await availableCameras();
   } on CameraException catch (e) {
