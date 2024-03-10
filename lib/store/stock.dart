@@ -33,14 +33,16 @@ class _StockState extends State<Stock> {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    product['product_name'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
+                  Flexible(
+                    child: Text(
+                      product['product_name'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                      maxLines: null,
+                      overflow: TextOverflow.clip,
                     ),
-                    maxLines: null,
-                    overflow: TextOverflow.clip,
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),

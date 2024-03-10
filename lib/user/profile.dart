@@ -54,14 +54,14 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           buildName(),
-          const Expanded(
-            child: History(),
-          ),
           IconButton(
             onPressed: () {
               signOut(context);
             },
             icon: const Icon(Icons.logout),
+          ),
+          const Expanded(
+            child: History(),
           ),
         ],
       ),

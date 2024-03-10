@@ -55,6 +55,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 5),
+                    if (AppUser.credit.value > 0)
+                      Flexible(
+                        child: Obx(
+                          () => Text(
+                            AppUser.credit.value.toString(),
+                            textScaleFactor: 0.7,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

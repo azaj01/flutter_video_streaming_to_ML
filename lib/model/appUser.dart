@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 
 class AppUser extends GetxController {
   static var customer_id = 'H'.obs;
-  static var first_name = 'H'.obs;
+  static var first_name = 'Login'.obs;
   static var last_name = 'H'.obs;
   static var email = 'H'.obs;
   static var credit = 0.0.obs;
