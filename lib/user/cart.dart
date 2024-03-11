@@ -98,6 +98,12 @@ class _CartPageState extends State<CartPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           cartController.checkOutFromCart();
+          const snackBar = SnackBar(
+            content: Text('Check out successful!'),
+            backgroundColor: Colors.green, // Set background color to green
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         },
         child: const Icon(Icons.shopping_cart_checkout),
       ),

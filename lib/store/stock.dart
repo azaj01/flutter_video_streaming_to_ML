@@ -181,7 +181,14 @@ class _StockState extends State<Stock> {
                     )
                   : const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Text('Out of Stock'),
+                      child: Text(
+                        'Out of Stock',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
             ],
           ),
